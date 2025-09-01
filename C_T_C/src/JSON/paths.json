@@ -1,0 +1,7 @@
+{
+    "json_folder": "../C_T_C/src/JSON/",
+    "json_file": "paths.json",
+    "backEnd_folder": "./C_T_C/src/backEnd/",
+    "frontEnd_folder": "./C_T_C/src/frontEnd/",
+    "resources_folder": "./C_T_C/resources/"
+}
