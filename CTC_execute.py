@@ -1,6 +1,6 @@
 
 # * IMPORTS - modules
-from C_T_C.src.backEnd.Main import main
+from C_T_C.src.backEnd.Main import Main
 
 # * IMPORTS - libraries
 ...
@@ -8,6 +8,6 @@ from C_T_C.src.backEnd.Main import main
 class CTC_execute:
     def run(self):
         print("CTC_execute.py is running...")
-        main()
+        Main().run()
 
 if __name__ == "__main__": CTC_execute().run()
