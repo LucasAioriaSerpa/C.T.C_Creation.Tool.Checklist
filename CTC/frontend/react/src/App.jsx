@@ -1,10 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
-import './App.css'
+import './css/App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+
+  useEffect(() => {
+    fetch('/API/status').then(response => response.json()).then(data => {
+      setCurrentTime(data.time);
+    });
+  }, []);
 
   return (
     <>
@@ -21,6 +28,11 @@ function App() {
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
         </button>
+        <p>
+          Current time from API: {
+            new Date(currentTime * 1000).toLocaleDateString()
+          }
+        </p>
         <p>
           Edit <code>src/App.jsx</code> and save to test HMR
         </p>

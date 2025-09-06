@@ -1,4 +1,9 @@
-# Logs
+
+#? cache files
+*__pycache__/
+*.py[cod]
+
+#? Logs
 logs
 *.log
 npm-debug.log*
@@ -12,7 +17,7 @@ dist
 dist-ssr
 *.local
 
-# Editor directories and files
+#? Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea

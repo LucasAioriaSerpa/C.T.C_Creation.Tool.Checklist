@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "api:win": "powershell -Command \"cd ../../backend/API; ../../backend/API/venv/Scripts/python -m flask run --no-debugger\"",
+    "api:linux": "cd ../../backend/API && ../../backend/API/venv/bin/python -m flask run --no-debugger",
+    "api": "cross-env-shell \"npm run api:win || npm run api:linux\""
   },
   "dependencies": {
     "react": "^19.1.1",
@@ -18,6 +21,7 @@
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",
+    "cross-env": "^10.0.0",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
