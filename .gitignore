@@ -1,4 +1,7 @@
 
+#? venv
+venv/
+
 #? cache files
 *__pycache__/
 *.py[cod]
