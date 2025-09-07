@@ -1,46 +1,30 @@
-import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './css/App.css'
+import React, { Suspense, lazy } from 'react'
+import { HashRouter as Router, Routes, Route } from 'react-router-dom'
+import { ErrorBoundary } from './components/errorBoundary'
+const HomePage    = lazy(() => import('./pages/homePage'))
+const LoginPage   = lazy(() => import('./pages/loginPage'))
+const SignUpPage  = lazy(() => import('./pages/signUpPage'))
 
 function App() {
-  const [count, setCount] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-
-  useEffect(() => {
-    fetch('/API/status').then(response => response.json()).then(data => {
-      setCurrentTime(data.time);
-    });
-  }, []);
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Current time from API: {
-            new Date(currentTime * 1000).toLocaleDateString()
-          }
-        </p>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <ErrorBoundary>
+      <Router>
+        <Suspense fallback={
+          <div className="loading">
+            <h1>Carregando...</h1>
+            <h3>Aguarde um momento</h3>
+          </div>
+        }>
+          <Routes>
+            <Route path="/"       element={<HomePage />} />
+            <Route path="/login"  element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="*"       element={<h1>404 - Página não encontrada!</h1>}/>
+          </Routes>
+        </Suspense>
+      </Router>
+    </ErrorBoundary>
   )
 }
 
