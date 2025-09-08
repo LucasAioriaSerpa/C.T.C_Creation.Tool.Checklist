@@ -5,6 +5,7 @@ import { ErrorBoundary } from './components/errorBoundary'
 const HomePage    = lazy(() => import('./pages/homePage'))
 const LoginPage   = lazy(() => import('./pages/loginPage'))
 const SignUpPage  = lazy(() => import('./pages/signUpPage'))
+const DashboardChecklistPage  = lazy(() => import('./pages/dashboardChecklistPage'))
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/"       element={<HomePage />} />
             <Route path="/login"  element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/dashboardChecklist" element={<DashboardChecklistPage />} />
             <Route path="*"       element={<h1>404 - Página não encontrada!</h1>}/>
           </Routes>
         </Suspense>
