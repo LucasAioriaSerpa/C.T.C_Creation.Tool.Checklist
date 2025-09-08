@@ -8,8 +8,8 @@ export default function HomePage() {
             <h3>Creation.Tool.Checklist</h3>
             <p>Ferramenta para criação de checklists</p>
             <div className="btn-mainMenu-container">
-                <Link to="/login">Login</Link>
-                <Link to="/signup">Sign-Up</Link>
+                <Link to="/login"><button>Login</button></Link>
+                <Link to="/signup"><button>Sign-Up</button></Link>
             </div>
         </>
     )
