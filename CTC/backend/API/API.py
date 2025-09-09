@@ -119,6 +119,7 @@ def handle_login():
             "message": "email e password são obrigatorios!"
         }), 400
     login = MGDB().read('auditor', {"email": email, "senha": password})
+    app.logger.info(login)
     if login is None:
         app.logger.warning("   > ?!? Usuário não encontrado ?!?")
         return jsonify({
@@ -138,7 +139,6 @@ def handle_login():
         "message": f"Login bem sucedido!\n Email: {email}",
         "token": "seu-token"
     }), 200
-
 
 # Checklits
 @app.route('/API/checklists', methods=['GET'])
@@ -202,7 +202,7 @@ def get_checklist(checklist_id):
     criterios = db.read("criterio", {"id_checklist": checklist_id})
 
     # projetos
-    projetos = db.read("projeto", {}) 
+    projetos = db.read("projeto", {})
 
     # avaliações relacionadas
     avaliacoes = db.read("avaliacao", {"id_checklist": checklist_id})

@@ -50,8 +50,6 @@ class ManagerDatabase:
         query = f"DELETE FROM {table} WHERE {condition}"
         self._execute(query, values)
 
-
-
 # INSERIR
 # ManagerDatabase().create("nome_tabela", {"atributo_tabela": "valor_campo", "atributo_tabela": "valor_campo"})
 
