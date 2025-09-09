@@ -1,4 +1,4 @@
-import '../css/form.css'
+import '../css/loginSignUpForm.css'
 import React, { useState } from "react";
 import authService from "../utils/auth/authService";
 import { UseForm } from '../hooks/useForm';

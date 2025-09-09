@@ -1,4 +1,4 @@
-import '../css/form.css'
+import '../css/loginSignUpForm.css'
 import { PageHeader } from '../components/PageHeader'
 import { SignUpForm } from '../components/signUpForm'
 import { BackBtn } from '../components/backBtn'

@@ -1,4 +1,4 @@
-import '../css/form.css'
+import '../css/loginSignUpForm.css'
 import { useState } from 'react'
 import { SendFormData } from '../utils/sendFormData'
 import { UseForm } from '../hooks/useForm'
