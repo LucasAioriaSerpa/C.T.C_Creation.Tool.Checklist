@@ -1,10 +1,10 @@
 
-#? venv
+#? backend
 venv/
-
-#? cache files
+*.env
 *__pycache__/
 *.py[cod]
+*.pyc
 
 #? Logs
 logs

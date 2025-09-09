@@ -1,11 +1,15 @@
 import '../css/loginPage.css'
+import { PageHeader } from '../components/PageHeader'
+import { BackBtn } from '../components/backBtn'
 
 export default function LoginPage() {
     return (
         <>
-            <h1>Login</h1>
-            <h3>Faça o login!</h3>
-            <div className="btns-loginPage-container"></div>
+            <PageHeader title="Login" subtitle="Faça o login!" />
+            <div className="btns-loginPage-container">
+                ...
+                <BackBtn to="/" />
+            </div>
         </>
     )
 }

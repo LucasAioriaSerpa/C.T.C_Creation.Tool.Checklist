@@ -10,7 +10,7 @@ export default function HomePage() {
             <div className="btn-mainMenu-container">
                 <Link to="/login"><button>Login</button></Link>
                 <Link to="/signup"><button>Sign-Up</button></Link>
-                <Link to="/dashboardChecklist"><button>Checklist</button></Link> 
+                <Link to="/dashboardChecklist"><button>Checklist</button></Link>
             </div>
         </>
     )

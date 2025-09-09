@@ -1,12 +1,14 @@
 import sqlite3
+import pathlib
 
 class ManagerDatabase:
     def __init__(self):
-        self.db_path = "CTC/backend/database/db_ctc.db"
-    
+        base_path = pathlib.Path(__file__).parent.parent.parent.parent
+        self.db_path = base_path / "backend" / "database" / "db_ctc.db"
+
     def connect(self):
         return sqlite3.connect(self.db_path)
-    
+
     def _execute(self, query, values=(), fetch=False):
         with self.connect() as conn:
             conn.row_factory = sqlite3.Row if fetch else None
@@ -18,7 +20,7 @@ class ManagerDatabase:
             else:
                 conn.commit()
                 return None
-    
+
     def create(self, table, data: dict):
         columns = ", ".join(data.keys())
         placeholders = ", ".join(["?" for _ in data])
@@ -26,7 +28,7 @@ class ManagerDatabase:
         query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
         self._execute(query, values)
 
-    def read(self, table, conditions: dict = None):
+    def read(self, table, conditions: dict[None, None]):
         query = f"SELECT * FROM {table}"
         values = ()
         if conditions:
