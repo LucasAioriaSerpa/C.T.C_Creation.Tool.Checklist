@@ -7,6 +7,9 @@ const HomePage                = lazy(() => import('./pages/homePage'))
 const LoginPage               = lazy(() => import('./pages/LoginPage'))
 const SignUpPage              = lazy(() => import('./pages/SignUpPage'))
 const DashboardChecklistPage  = lazy(() => import('./pages/dashboardChecklistPage'))
+const ChecklistDetailPage     = lazy(() => import('./pages/checklistDetailPage'))
+const ChecklistSetupPage      = lazy(() => import('./pages/checklistSetupPage'))
+
 
 function App() {
   const [backendData, setBackendData] = useState({message: '', author: '', timestamp: '', status: ''})
@@ -54,11 +57,13 @@ function App() {
           </div>
         }>
           <Routes>
-            <Route path="/"                   element={<HomePage />} />
-            <Route path="/login"              element={<LoginPage />} />
-            <Route path="/signup"             element={<SignUpPage />} />
-            <Route path="/dashboardChecklist" element={<DashboardChecklistPage />} />
-            <Route path="*"                   element={<h1>404 - Página não encontrada!</h1>}/>
+            <Route path="/"                    element={<HomePage />} />
+            <Route path="/login"               element={<LoginPage />} />
+            <Route path="/signup"              element={<SignUpPage />} />
+            <Route path="/dashboardChecklist"  element={<DashboardChecklistPage />} />
+            <Route path="/checklist/:id"       element={<ChecklistDetailPage />} />
+            <Route path="/checklist/:id/setup" element={<ChecklistSetupPage />} />
+            <Route path="*"                    element={<h1>404 - Página não encontrada!</h1>}/>
           </Routes>
         </Suspense>
       </Router>

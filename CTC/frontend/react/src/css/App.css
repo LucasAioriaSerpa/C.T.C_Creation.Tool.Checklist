@@ -40,3 +40,14 @@
 .read-the-docs {
   color: #888;
 }
+
+.primary-btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(90deg, #646cff, #8a54ff);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+.primary-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(100,100,255,0.12); }

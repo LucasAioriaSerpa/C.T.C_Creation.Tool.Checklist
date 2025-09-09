@@ -1,0 +1,43 @@
+.detail-container {
+  min-height: 80vh;
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 18px;
+  color: #eaeaea;
+}
+
+.detail-header {
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.detail-section {
+  background: linear-gradient(145deg, #222, #1a1a1a);
+  padding: 14px;
+  border-radius: 12px;
+  margin-top: 14px;
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+.criterios-list { list-style: none; padding-left: 0; margin: 6px 0; }
+.criterios-list li { padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.02); }
+
+.form-inline {
+  display:flex;
+  gap:8px;
+  margin-top: 10px;
+}
+.form-inline input { flex: 1; padding: 8px; border-radius:8px; background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.03); color:#eee; }
+
+.form-block { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+.form-block input, .form-block textarea { padding:8px; border-radius:8px; background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.03); color:#eee; }
+
+.projetos-grid { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; }
+.projeto-card { background: rgba(255,255,255,0.02); padding:8px; border-radius:8px; min-width: 200px; max-width: 320px; }
+
+.danger-btn {
+  background: linear-gradient(90deg, #ff6b6b, #ff4c4c);
+  color:white; padding:8px 12px; border-radius:8px; border:none; cursor:pointer;
+}

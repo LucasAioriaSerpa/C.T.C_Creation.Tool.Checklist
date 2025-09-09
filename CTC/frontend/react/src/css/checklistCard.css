@@ -1,0 +1,103 @@
+.checklist-card {
+    background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
+    color: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(107, 53, 255, 0.3);
+    padding: 24px;
+    width: 340px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    border: 1px solid #3a3a3a;
+    position: relative;
+    overflow: hidden;
+}
+
+.checklist-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #646cff, #8a54ff);
+}
+
+.checklist-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(107, 53, 255, 0.4);
+}
+
+.checklist-title {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 16px;
+    color: #ffffff;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.checklist-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, #646cff, #8a54ff);
+    border-radius: 3px;
+}
+
+.checklist-field {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.checklist-label {
+    font-weight: bold;
+    font-size: 14px;
+    white-space: nowrap;
+    color: #a0a0a0;
+    min-width: 90px;
+}
+
+.checklist-value {
+    font-size: 14px;
+    color: #e0e0e0;
+    flex: 1;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    text-align: left; 
+    line-height: 1.4;
+}
+
+.checklist-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 10px;
+}
+
+.checklist-button {
+    margin-top: 16px;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #646cff, #8a54ff);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+}
+
+.checklist-button:hover {
+    background: linear-gradient(90deg, #535bf2, #7a45e0);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(107, 53, 255, 0.3);
+}
