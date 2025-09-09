@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ChecklistCard from "../components/checklistCard.jsx";
 import Header from "../components/Header.jsx";
 import CreateChecklistModal from "../components/createChecklistModal.jsx";
-import '../css/dashboardChecklistPage.css'; 
+import '../css/dashboardChecklistPage.css';
 
 import { useNavigate } from "react-router-dom";
 

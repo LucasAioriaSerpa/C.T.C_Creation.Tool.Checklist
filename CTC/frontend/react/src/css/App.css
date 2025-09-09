@@ -50,4 +50,4 @@
   font-weight: 600;
   cursor: pointer;
 }
-.primary-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(100,100,255,0.12); }
+.primary-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px #6464ff1f; }

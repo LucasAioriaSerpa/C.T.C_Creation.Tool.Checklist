@@ -1,4 +1,4 @@
-import '../css/signUpForm.css'
+import '../css/form.css'
 import { useState } from 'react'
 import { SendFormData } from '../utils/sendFormData'
 import { UseForm } from '../hooks/useForm'
@@ -32,7 +32,7 @@ export function SignUpForm() {
         }
     }
     return (
-        <form className='form-signUp' onSubmit={handleSubmit}>
+        <form className='form-card' onSubmit={handleSubmit}>
             {error && <div className='error-message'>{error}</div>}
             <input type="hidden" name="db-table" value="auditor" />
             <input type="text"

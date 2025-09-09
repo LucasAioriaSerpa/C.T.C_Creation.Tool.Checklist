@@ -1,9 +1,109 @@
 
-.btn-mainMenu-container {
+.homepage-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    height: 100%;
+    text-align: center;
+    padding: 20px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.homepage-container h1 {
+    font-size: 4em;
+    font-weight: 700;
+    background: linear-gradient(90deg, #646cff, #8a54ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.homepage-container h3 {
+    font-size: 1.8em;
+    color: #a0a0a0;
+    margin-top: -20px;
+    animation: fadeIn 1.2s ease-in-out;
+}
+
+.homepage-container p {
+    max-width: 600px;
+    line-height: 1.6;
+    font-size: 1.2em;
+    color: #b0b0b0;
+    margin-top: 20px;
+    animation: fadeIn 1.5s ease-in-out;
+}
+
+.btn-mainMenu-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
     gap: 20px;
-    margin-top: 30px;
+    margin-top: 40px;
+    animation: slideUp 1.8s ease-in-out;
+}
+
+.btn-mainMenu-container .primary-btn {
+    background: linear-gradient(90deg, #646cff, #8a54ff);
+    color: white;
+    padding: 12px 24px;
+    font-size: 1.1em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-mainMenu-container .primary-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(100, 100, 255, 0.25);
+    background: linear-gradient(90deg, #535bf2, #7a46e3);
+}
+
+/* Animações de entrada */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .homepage-container h1 {
+        font-size: 2.5em;
+    }
+
+    .homepage-container h3 {
+        font-size: 1.2em;
+    }
+
+    .btn-mainMenu-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .btn-mainMenu-container .primary-btn {
+        width: 100%;
+        max-width: 250px;
+    }
 }

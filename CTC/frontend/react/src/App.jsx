@@ -10,7 +10,6 @@ const DashboardChecklistPage  = lazy(() => import('./pages/dashboardChecklistPag
 const ChecklistDetailPage     = lazy(() => import('./pages/checklistDetailPage'))
 const ChecklistSetupPage      = lazy(() => import('./pages/checklistSetupPage'))
 
-
 function App() {
   const [backendData, setBackendData] = useState({message: '', author: '', timestamp: '', status: ''})
   const [loading, setLoading] = useState(true)

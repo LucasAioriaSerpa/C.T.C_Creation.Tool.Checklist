@@ -1,4 +1,4 @@
-import '../css/loginForm.css'
+import '../css/form.css'
 import React, { useState } from "react";
 import authService from "../utils/auth/authService";
 import { UseForm } from '../hooks/useForm';
@@ -30,7 +30,7 @@ export function LoginForm() {
         }
     }
     return (
-        <form className='form-login' onSubmit={HandleSubmit}>
+        <form className='form-card' onSubmit={HandleSubmit}>
             {error && <div className='error-message'>{error}</div>}
             <input type="text"
                 name='email'

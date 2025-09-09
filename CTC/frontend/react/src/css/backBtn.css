@@ -1,0 +1,18 @@
+
+.back-btn-container button {
+    background-color: transparent;
+    border: 1px solid #888;
+    color: #888;
+    padding: 12px 24px;
+    font-size: 1em;
+    font-weight: 500;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.back-btn-container button:hover {
+    border-color: #646cff;
+    color: #646cff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px #646cff1a;
+}
