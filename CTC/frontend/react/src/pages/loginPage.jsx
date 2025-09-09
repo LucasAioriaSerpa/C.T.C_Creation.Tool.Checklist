@@ -7,8 +7,8 @@ export default function LoginPage() {
         <>
             <PageHeader title="Login" subtitle="Faça o login!" />
             <div className="btns-loginPage-container">
-                ...
-                <BackBtn to="/" />
+                <LoginForm />
+                <BackBtn to="/"/>
             </div>
         </>
     )

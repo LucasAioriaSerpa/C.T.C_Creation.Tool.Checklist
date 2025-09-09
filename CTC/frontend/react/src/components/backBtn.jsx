@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 export function BackBtn({ to }) {
     return (
         <Link to={ to }>
-            <button>Volter</button>
+            <button>Voltar</button>
         </Link>
     )
 }

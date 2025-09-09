@@ -52,11 +52,27 @@ def handle_form_data():
         "email":    email,
         "senha":    password
     })
+    login = MGDB().read('auditor', {"email": email, "senha": password})
+    app.logger.info(login)
+    if login is None:
+        app.logger.warning("   > ?!? Usuário não encontrado ?!?")
+        return jsonify({
+            "message": "Usuário não encontrado"
+        }), 404
+    if not login:
+        app.logger.warning(f"   > ?!? Nenhum dado neste usuário ?!?")
+        return jsonify({
+            "message": "Nenhum dado neste usuário?!"
+        }), 404
+    if (email != login[0]['email'] and password != login[0]['senha']):
+        app.logger.warning("   > ?!? Email ou senha incorretos ?!?")
+        return jsonify({
+            "message": "Email ou senha incorretos."
+        }), 404
     return jsonify({
         "message": "Dados recebidos com sucesso!",
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     }), 201
-
 
 # Checklits
 @app.route('/API/checklists', methods=['GET'])
@@ -120,7 +136,7 @@ def get_checklist(checklist_id):
     criterios = db.read("criterio", {"id_checklist": checklist_id})
 
     # projetos
-    projetos = db.read("projeto", {}) 
+    projetos = db.read("projeto", {})
 
     # avaliações relacionadas
     avaliacoes = db.read("avaliacao", {"id_checklist": checklist_id})
