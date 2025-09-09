@@ -1,10 +1,13 @@
 import '../css/signUpForm.css'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { SendFormData } from '../utils/sendFormData'
 import { UseForm } from '../hooks/useForm'
+import { useNavigate } from 'react-router-dom'
 
 export function SignUpForm() {
+    const navigate = useNavigate()
     const [formData, handleChange, resetForm] = UseForm({
+        'db-table': 'auditor',
         nome: '',
         email: '',
         password: ''
@@ -19,7 +22,8 @@ export function SignUpForm() {
             const response = await SendFormData(formData)
             console.log('Resposta do servidor: ', response)
             alert('Cadastro realizado!')
-            resetForm
+            resetForm()
+            navigate('/login')
         } catch (error) {
             setError(error.message)
             alert(`Error: ${error.message}`)
@@ -30,6 +34,7 @@ export function SignUpForm() {
     return (
         <form className='form-signUp' onSubmit={handleSubmit}>
             {error && <div className='error-message'>{error}</div>}
+            <input type="hidden" name="db-table" value="auditor" />
             <input type="text"
                 name="nome"
                 id="nome_input"
