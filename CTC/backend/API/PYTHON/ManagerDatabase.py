@@ -28,7 +28,7 @@ class ManagerDatabase:
         query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
         self._execute(query, values)
 
-    def read(self, table, conditions: dict):
+    def read(self, table, conditions: dict[None, None]):
         query = f"SELECT * FROM {table}"
         values = ()
         if conditions:
@@ -56,7 +56,7 @@ class ManagerDatabase:
 # ManagerDatabase().create("nome_tabela", {"atributo_tabela": "valor_campo", "atributo_tabela": "valor_campo"})
 
 # VISUALIZAR
-# ManagerDatabase().read("nome_tabela", {}) ou ManagerDatabase().("nome_tabela", {"atributo_procurado": "valor_atributo"})
+# ManagerDatabase().read("nome_tabela")) ou ManagerDatabase().("nome_tabela", {"atributo_procurado": "valor_atributo"})
 
 # ATUALIZAR
 # ManagerDatabase().update("nome_tabela", {"campo_que_sera_atualizado": "novo_valor_do_campo"}, {"atributo_procurado": "valor_procurado"})
