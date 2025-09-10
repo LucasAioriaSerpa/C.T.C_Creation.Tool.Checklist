@@ -1,7 +1,7 @@
 import React from "react";
 import "../css/checklistCard.css";
 
-export default function ChecklistCard({ id, nome, descricao, dataCriacao, criador, btnAbrir }) {
+export default function ChecklistCard({ nome, descricao, dataCriacao, criador, btnAbrir }) {
   return (
     <div className="checklist-card">
         <h2 className="checklist-title">{nome}</h2>

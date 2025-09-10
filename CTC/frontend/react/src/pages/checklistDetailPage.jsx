@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header.jsx";
+import { BackBtn } from "../components/backBtn.jsx";
 import "../css/checklistDetailPage.css";
 
 export default function ChecklistDetailPage() {
@@ -107,6 +108,7 @@ export default function ChecklistDetailPage() {
       <div className="detail-container">
         <div className="detail-header">
           <h1>{checklist.nome}</h1>
+          <BackBtn to="/dashboardChecklist" />
           <div>
             <button className="danger-btn" onClick={handleDelete}>Excluir Checklist</button>
           </div>

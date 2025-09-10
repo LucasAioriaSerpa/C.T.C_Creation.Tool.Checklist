@@ -1,7 +1,6 @@
 
 #? backend
 venv/
-*.env
 *__pycache__/
 *.py[cod]
 *.pyc

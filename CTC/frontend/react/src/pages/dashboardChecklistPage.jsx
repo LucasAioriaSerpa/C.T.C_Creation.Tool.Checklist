@@ -1,31 +1,34 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { fetchData } from "../utils/fetchData.jsx";
+import authService from "../utils/auth/authService.jsx";
 import ChecklistCard from "../components/checklistCard.jsx";
 import Header from "../components/Header.jsx";
 import CreateChecklistModal from "../components/createChecklistModal.jsx";
 import '../css/dashboardChecklistPage.css';
 
-import { useNavigate } from "react-router-dom";
-
 export default function DashboardChecklistPage() {
   const [checklists, setChecklists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const VITE_API_URL = 'http://localhost:5000';
-  const API_URL = VITE_API_URL;
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`${API_URL}/API/checklists`)
-      .then(r => r.json())
-      .then(data => {
-        setChecklists(data.checklists || []);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Erro ao buscar checklists:", err);
-        setLoading(false);
-      });
-  }, [API_URL]);
+    if (!authService.isLoggedIn()) {
+      navigate('/')
+    }
+    const fetchChecklists = async () => {
+      try {
+        const data = await fetchData('/API/checklists')
+        setChecklists(data.checklists || [])
+      } catch (error) {
+        console.error("Error ao buscar checklists: ", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchChecklists()
+  }, [navigate]);
 
   const abrirChecklist = (id) => {
     navigate(`/checklist/${id}`);
@@ -33,7 +36,7 @@ export default function DashboardChecklistPage() {
 
   return (
     <>
-      <Header /> 
+      <Header />
       <div className="dashboard-container">
         <div style={{display: 'flex', width: '100%', maxWidth: 1200, justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
           <h1 className="dashboard-title">Checklists</h1>

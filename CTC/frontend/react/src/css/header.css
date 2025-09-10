@@ -1,6 +1,7 @@
+
 .dashboard-header {
   width: 100%;
-  background: rgba(30, 30, 30, 0.8);
+  background: #1e1e1ecc;
   backdrop-filter: blur(10px);
   padding: 15px 0;
   border-bottom: 1px solid #3a3a3a;
@@ -35,4 +36,33 @@
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid #646cff;
+}
+
+.logout-btn {
+  background-color: transparent;
+  border: none;
+  color: #ff6b6b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background-color: #ff6b6b;
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+}
+
+@media (prefers-color-scheme: light) {
+  .logout-btn {
+    color: #d9534f;
+  }
+  .logout-btn:hover {
+    background-color: #d9534f;
+    color: white;
+  }
 }

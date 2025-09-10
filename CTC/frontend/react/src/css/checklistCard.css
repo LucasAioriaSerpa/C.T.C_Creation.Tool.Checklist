@@ -55,6 +55,8 @@
     gap: 6px;
     align-items: flex-start;
     margin-bottom: 12px;
+} .checklist-field p {
+    font-size: 1vb;
 }
 
 .checklist-label {
@@ -72,7 +74,7 @@
     word-wrap: break-word;
     word-break: break-word;
     white-space: normal;
-    text-align: left; 
+    text-align: left;
     line-height: 1.4;
 }
 

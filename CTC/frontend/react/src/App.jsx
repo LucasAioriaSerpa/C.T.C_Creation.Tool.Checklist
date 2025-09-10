@@ -2,6 +2,7 @@ import './css/App.css'
 import React, { Suspense, lazy, useState, useEffect } from 'react'
 import { HashRouter as Router, Routes, Route } from 'react-router-dom'
 import { ErrorBoundary } from './components/errorBoundary'
+import PrivateRoute from './components/privateRoute'
 
 const HomePage                = lazy(() => import('./pages/homePage'))
 const LoginPage               = lazy(() => import('./pages/LoginPage'))
@@ -56,13 +57,34 @@ function App() {
           </div>
         }>
           <Routes>
-            <Route path="/"                    element={<HomePage />} />
-            <Route path="/login"               element={<LoginPage />} />
-            <Route path="/signup"              element={<SignUpPage />} />
-            <Route path="/dashboardChecklist"  element={<DashboardChecklistPage />} />
-            <Route path="/checklist/:id"       element={<ChecklistDetailPage />} />
-            <Route path="/checklist/:id/setup" element={<ChecklistSetupPage />} />
-            <Route path="*"                    element={<h1>404 - Página não encontrada!</h1>}/>
+            <Route path="/"       element={<HomePage />} />
+            <Route path="/login"  element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route
+              path="/dashboardChecklist"
+              element={
+                <PrivateRoute>
+                  <DashboardChecklistPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/checklist/:id"
+              element={
+                <PrivateRoute>
+                  <ChecklistDetailPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/checklist/:id/setup"
+              element={
+                <PrivateRoute>
+                  <ChecklistSetupPage />
+                </PrivateRoute>
+              }
+            />
+            <Route path="*" element={<h1>404 - Página não encontrada!</h1>}/>
           </Routes>
         </Suspense>
       </Router>

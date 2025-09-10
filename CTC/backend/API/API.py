@@ -133,9 +133,13 @@ def handle_login():
         return jsonify({
             "message": "Email ou senha incorretos."
         }), 404
+    user = login[0]
     return jsonify({
-        "message": f"Login bem sucedido!\n Email: {email}",
-        "token": "seu-token"
+        "message": f"Login bem sucedido!\n Email: {user['email']}",
+        "token": "seu-token",
+        "id_auditor": user['id_auditor'],
+        "nome": user['nome'],
+        "email": user['email']
     }), 200
 
 # Checklits
@@ -182,7 +186,7 @@ def create_checklist():
     finally:
         conn.close()
 
-    return jsonify({"message": "Checklist criada com sucesso", "id_checklist": new_id}), 201
+    return jsonify({"message": "Checklist criada com sucesso", "id_checklist": new_id}), 200
 
 @app.route('/API/checklist/<int:checklist_id>', methods=['GET'])
 def get_checklist(checklist_id):

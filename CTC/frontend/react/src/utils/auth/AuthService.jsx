@@ -1,36 +1,41 @@
-import { SendData } from "../sendData"
 
-const TOKEN_KEY = 'user_token'
+const API_URL = import.meta.env.VITE_API_URL;
 
-class AuthService {
-    constructor() {
-        this.TOKEN = localStorage.getItem(TOKEN_KEY) || null
-    }
+const authService = {
     async login(email, password) {
-        try {
-            const data = { email, password }
-            const response = await SendData('/API/login', data)
-            if (response.token) {
-                this.token = response.token
-                localStorage.setItem(TOKEN_KEY, this.token)
-                return response
-            }
-            throw new Error("Token não encontrado!")
-        } catch (error) {
-            this.logout()
-            throw error
+        const response = await fetch(`${API_URL}/API/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
+        })
+        if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.message || 'Falha no login')
         }
-    }
-    logout() {
-        this.token = null
-        localStorage.removeItem(TOKEN_KEY)
-    }
+        const data = await response.json()
+        if (data.token) {
+            localStorage.setItem('userToken', data.token)
+            localStorage.setItem('userId', data.id_auditor)
+            localStorage.setItem('nome', data.nome)
+            localStorage.setItem('email', data.email)
+        }
+        return data
+    },
     isLoggedIn() {
-        return this.token != null
-    }
-    getToken() {
-        return this.token
-    }
+        return !! localStorage.getItem('userToken');
+    },
+    logout() {
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('userId')
+        localStorage.removeItem('nome')
+        localStorage.removeItem('email')
+    },
+    getToken()      { return localStorage.getItem('userToken')  },
+    getUserId()     { return localStorage.getItem('userId')     },
+    getUserNome()   { return localStorage.getItem('nome')       },
+    getUserEmail()  { return localStorage.getItem('email')      }
 }
 
-export default new AuthService()
+export default authService
