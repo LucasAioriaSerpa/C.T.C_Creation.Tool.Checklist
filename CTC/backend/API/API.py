@@ -10,6 +10,7 @@ import logging
 import sqlite3
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_mail import Mail, Message
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,6 +18,15 @@ app = Flask(__name__)
 frontend_url = os.getenv('FRONTEND_URL', '*')
 CORS(app, resources={r"/API/*": {"origins": frontend_url}})
 logging.basicConfig(level=logging.INFO)
+
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+mail = Mail(app)
 
 @app.route('/API/status', methods=['GET'])
 def get_status():
@@ -288,5 +298,30 @@ def create_projeto():
     })
     return jsonify({"message": "Projeto criado"}), 201
 
+@app.route('/API/sendEmail', methods=['POST'])
+def send_email():
+    app.logger.info("POST /API/sendEmail")
+    if not request.is_json:
+        return jsonify({"message": "Content-Type deve ser application/json"}), 400
+    data = request.get_json()
+    autor = data.get('autor', app.config['MAIL_DEFAULT_SENDER'])
+    recipiente = data.get('recipiente')
+    assunto = data.get('assunto', 'Sem Assunto')
+    corpo = data.get('message', '')
+
+    if not recipiente:
+        return jsonify({"message": "Erro: Campo de recipiente faltando"}), 400
+
+    try:
+        msg = Message(assunto,
+                      sender=autor,
+                      recipients=[recipiente],
+                      body=corpo)
+        mail.send(msg)
+        app.logger.info(f"E-mail enviado para {recipiente}")
+        return jsonify({"message": "E-mail enviado com sucesso"}), 200
+    except Exception as e:
+        app.logger.error(f"Erro ao enviar e-mail: {e}")
+        return jsonify({"message": "Erro ao enviar e-mail"}), 500
 
 if __name__ == '__main__': app.run(debug=True)
