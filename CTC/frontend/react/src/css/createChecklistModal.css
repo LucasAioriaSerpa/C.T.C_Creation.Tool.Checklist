@@ -69,6 +69,27 @@
   margin-top: 24px;
 }
 
+.add-projeto-form {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+} .add-projeto-form h4 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.projeto-form-row {
+  display: flex;
+  flex-direction: column;
+  overflow-wrap:anywhere;
+  gap: 12px;
+  margin-bottom: 16px;
+} .projeto-form-row input,
+.projeto-form-row textarea {
+  flex: 1;
+}
+
 .btn-secondary {
   padding: 10px 20px;
   border-radius: 8px;

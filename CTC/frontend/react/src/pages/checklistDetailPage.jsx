@@ -17,7 +17,7 @@ export default function ChecklistDetailPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [setShowCreateForm] = useState(false);
   const [showNaoConformidadeModal, setShowNaoConformidadeModal] = useState(false);
   const [selectedCriterioId, setSelectedCriterioId] = useState(null);
   const [avaliacaoId, setAvaliacaoId] = useState(null);
@@ -119,7 +119,7 @@ export default function ChecklistDetailPage() {
 
   const handleUpdateCriterio = async (criterioId, newClassificacao) => {
     if (!avaliacaoId) return alert("Inicie uma avaliação para alterar os critérios.");
-    if (!data || !data.criterios) return alert("Dados da checklist não carregados.");
+    if (!data?.criterios) return alert("Dados da checklist não carregados.");
     if (!['SIM', 'NAO', 'N/A'].includes(newClassificacao)) return alert("Classificação inválida.");
     const nao_conformidades_seguro = data.nao_conformidades ?? [];
     const oldData = data;
@@ -158,24 +158,6 @@ export default function ChecklistDetailPage() {
       setData(oldData);
       console.error("Erro ao atualizar critério:", error);
       alert("Erro de conexão! verifique se o servidor está rodando!");
-    }
-  };
-
-  const handleAddProjeto = async (e) => {
-    e.preventDefault();
-    if (!projetoFormData.nome) return alert("Informe o nome do projeto");
-    const res = await fetch(`${API_URL}/API/projeto`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...projetoFormData, id_checklist: Number(id) })
-    });
-    if (res.ok) {
-      alert("Projeto criado com sucesso!");
-      fetchChecklistData();
-      setProjetoFormData({ nome: "", descricao: "", responsavel_nome: "", responsavel_email: "", gestor_email: "" });
-      setShowCreateForm(false);
-    } else {
-      alert("Erro ao criar projeto");
     }
   };
 
@@ -235,7 +217,6 @@ export default function ChecklistDetailPage() {
   const criterios = data.criterios || [];
   const projetos = data.projetos || [];
   const aderencia = data.aderencia;
-  const nao_conformidades = data.nao_conformidades || [];
 
   const renderProjetoForm = (submitHandler, isUpdate = false) => (
     <div className="add-projeto-form">
@@ -304,8 +285,6 @@ export default function ChecklistDetailPage() {
                         <td colSpan="6">Nenhum critério cadastrado.</td>
                       </tr>
                     ) : (criterios.map(c => {
-                      const existingNc = nao_conformidades.find(nc => nc.id_criterio === c.id_criterio);
-                      const isNcButtonDisabled = c.classificacao_resposta !== 'NAO' || !avaliacaoId || existingNc;
                       return (
                         <tr key={c.id_criterio}>
                           <td>{c.id_criterio}</td>
@@ -327,7 +306,6 @@ export default function ChecklistDetailPage() {
                               name={`criterio-${c.id_criterio}`}
                               checked={c.classificacao_resposta === 'NAO'}
                               onChange={() => handleUpdateCriterio(c.id_criterio, 'NAO')}
-                              disabled={isNcButtonDisabled}
                             />
                             <label htmlFor={`nao-${c.id_criterio}`}>NÃO</label>
                           </td>
@@ -357,17 +335,7 @@ export default function ChecklistDetailPage() {
           <section className="detail-section projetos-section">
             <div className="info-header">
               <h3>Projetos</h3>
-              <button
-                className="primary-btn"
-                onClick={() => {
-                  setShowCreateForm(!showCreateForm);
-                  setIsEditing(false);
-                }}
-              >
-                {showCreateForm ? "Fechar Formulário" : "Criar Projeto"}
-              </button>
             </div>
-            {showCreateForm && renderProjetoForm(handleAddProjeto, false)}
             {isEditing && renderProjetoForm(handleUpdateProjeto, true)}
             {projetos.length > 0 ? (
               <div className="projetos-grid">
@@ -376,11 +344,7 @@ export default function ChecklistDetailPage() {
                     <div className="projeto-actions">
                       <button className="secondary-btn" onClick={() => handleEditClick(p)}>Editar</button>
                       <button className="danger-btn" onClick={() => handleDeleteProjeto(p.id_projeto)}>Excluir</button>
-                      <button
-                        className="primary-btn"
-                        onClick={() => handleStartAvaliacao(p.id_projeto)}
-                      >
-                        Avaliar
+                      <button className="primary-btn" onClick={() => handleStartAvaliacao(p.id_projeto)}>Avaliar
                       </button>
                     </div>
                     <h4>{p.nome}</h4>

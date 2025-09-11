@@ -89,9 +89,9 @@ def handle_form_data():
             return jsonify({
                 "message": f"Tabela '{db_table}' não reconhecida."
             }), 400
-    app.logger.warning(f"   > ?!? TU NÃO DEVERIA ESTAR AQ! ?!?")
+    app.logger.warning("   > ?!? TU NÃO DEVERIA ESTAR AQ! ?!?")
     return jsonify({
-        "message": f"???????????man como GENESIOS ÁGUADOS tu chego aq???????????"
+        "message": "???????????man como GENESIOS ÁGUADOS tu chego aq???????????"
     }), 404
 
 @app.route('/API/dados/<string:tabela>', methods=['GET'])
@@ -134,7 +134,7 @@ def handle_login():
             "message": "Usuário não encontrado"
         }), 404
     if not login:
-        app.logger.warning(f"   > ?!? Nenhum dado neste usuário ?!?")
+        app.logger.warning("   > ?!? Nenhum dado neste usuário ?!?")
         return jsonify({
             "message": "Nenhum dado neste usuário?!"
         }), 404
@@ -176,10 +176,9 @@ def create_checklist():
     nome = data.get('nome')
     descricao = data.get('descricao', '')
     criado_por = data.get('criado_por')
-
+    projeto = data.get('projeto', None)
     if not all([nome, criado_por]):
         return jsonify({"message": "Campos obrigatórios: nome, criado_por (id do auditor)"}), 400
-
     db_path = MGDB().db_path
     conn = sqlite3.connect(db_path)
     try:
@@ -189,6 +188,19 @@ def create_checklist():
             (nome, descricao, criado_por)
         )
         conn.commit()
+        if projeto:
+            projeto_nome = projeto.get('nome')
+            projeto_descricao = projeto.get('descricao', '')
+            responsavel_nome = projeto.get('responsavel_nome', '')
+            responsavel_email = projeto.get('responsavel_email', '')
+            gestor_email = projeto.get('gestor_email', '')
+            if not projeto_nome:
+                return jsonify({"message": "Campo obrigatório no projeto: nome"}), 400
+            cursor.execute(
+                "INSERT INTO projeto (nome, descricao, responsavel_nome, responsavel_email, gestor_email) VALUES (?, ?, ?, ?, ?)",
+                (projeto_nome, projeto_descricao, responsavel_nome, responsavel_email, gestor_email)
+            )
+            conn.commit()
         new_id = cursor.lastrowid
     except Exception as e:
         app.logger.error(f"Erro ao inserir checklist: {e}")
@@ -269,8 +281,8 @@ def delete_checklist(checklist_id):
         for aid in avaliacao_ids: db.delete("nao_conformidade", {"id_avaliacao": aid})
         db.delete("avaliacao", {"id_checklist": checklist_id})
     if criterio_ids: db.delete("criterio", {"id_checklist": checklist_id})
-    respostas = db.read("resposta", {"id_avaliacao": {"$in": avaliacao_ids}}) if avaliacao_ids else []
-    if respostas: db.delete("resposta", {"id_avaliacao": {"$in": avaliacao_ids}})
+    respostas = db.read("resposta", {"id_avaliacao": avaliacao_ids}) if avaliacao_ids else []
+    if respostas: db.delete("resposta", {"id_avaliacao": avaliacao_ids})
     db.delete("checklist", {"id_checklist": checklist_id})
     return jsonify({"message": "Checklist e dados relacionados removidos com sucesso"}), 200
 
@@ -516,6 +528,12 @@ def update_resposta():
             "message": "Campos obrigatórios: id_avaliacao, id_criterio, classificacao"
         }), 400
     db = MGDB()
+    criterio = db.read("criterio", {"id_criterio": id_criterio})
+    if not criterio:
+        return jsonify({
+            "message": "Critério não encontrado"
+        }), 400
+    db.update("criterio", {"classificacao": classificacao}, {"id_criterio": id_criterio})
     resposta_existente = db.read("resposta", {"id_avaliacao": id_avaliacao, "id_criterio": id_criterio})
     if resposta_existente:
         db.update("resposta", {"classificacao": classificacao}, {"id_avaliacao": id_avaliacao, "id_criterio": id_criterio})

@@ -38,6 +38,7 @@
     font-size: 22px;
     font-weight: 600;
     text-align: left;
+    overflow-wrap: break-word;
     margin-bottom: 20px;
     color: var(--text-primary);
     position: relative;
@@ -58,6 +59,7 @@
 .checklist-field {
     display: flex;
     flex-direction: column;
+    overflow-wrap: break-word;
     gap: 4px;
     margin-bottom: 16px;
 }

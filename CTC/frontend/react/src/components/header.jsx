@@ -16,7 +16,7 @@ export default function Header() {
         <div className="user-menu">
           <span>Olá, {authService.getUserNome()}</span>
           <button onClick={handleLogout} className="logout-btn">
-            Sair
+            Logout
           </button>
         </div>
       </div>
