@@ -256,6 +256,11 @@ export default function ChecklistDetailPage() {
             <p><strong>Descrição:</strong> {checklist.descricao}</p>
             <p><strong>Criador (id):</strong> {checklist.criado_por}</p>
             <p><strong>Data criação:</strong> {new Date(checklist.criado_em).toLocaleDateString()}</p>
+            {data.ultima_avaliacao_data && (
+              <p>
+                <strong>Última Avaliação:</strong> {new Date(data.ultima_avaliacao_data).toLocaleDateString()}
+              </p>
+            )}
             {aderencia !== null && (
               <p>
                 <strong>Aderência:</strong>
@@ -322,7 +327,7 @@ export default function ChecklistDetailPage() {
                         </tr>
                       )
                     }
-                  ))}
+                    ))}
                   </tbody>
                 </table>
               </div>
