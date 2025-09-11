@@ -1,7 +1,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: #000000b3;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -16,7 +16,7 @@
   width: 100%;
   max-width: 480px;
   color: var(--text-primary);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 18px 60px #00000099;
   border: 1px solid var(--border-color);
 }
 
@@ -54,7 +54,7 @@
 .modal-card textarea:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 8px rgba(58, 123, 213, 0.4);
+  box-shadow: 0 0 8px #3a7bd566;
 }
 
 .modal-card textarea {

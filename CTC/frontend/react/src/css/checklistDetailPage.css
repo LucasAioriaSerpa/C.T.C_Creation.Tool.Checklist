@@ -5,7 +5,7 @@
   --secondary-text: #b0b0b0;
   --accent-color: #6a8dff;
   --danger-color: #ff6b6b;
-  --border-color: rgba(255, 255, 255, 0.1);
+  --border-color: #ffffff1a;
   --card-bg: #252525;
 }
 
@@ -46,7 +46,7 @@
   padding: 1.5rem;
   border-radius: 12px;
   border: 1px solid var(--border-color);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px #0000001a;
 }
 
 .detail-section h3 {
@@ -96,7 +96,7 @@
 }
 
 .criterios-table th {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: #ffffff0d;
   font-weight: bold;
 }
 
@@ -118,7 +118,7 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #ffffff1a;
 }
 
 .criterios-table .radio-cell input[type="radio"]:checked+label {
@@ -128,7 +128,7 @@
 }
 
 .criterios-table .radio-cell input[type="radio"]:hover+label {
-  background-color: rgba(106, 141, 255, 0.5);
+  background-color: #6a8dff80;
 }
 
 /* Projetos Section */
@@ -137,6 +137,10 @@
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
+}
+
+.projeto-action {
+  gap: 1rem;
 }
 
 .projeto-card {
@@ -148,7 +152,7 @@
 
 .projeto-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 12px #00000033;
 }
 
 .projeto-card h4 {
@@ -195,7 +199,7 @@ textarea {
   flex: 1;
   padding: 0.8rem;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #ffffff0d;
   border: 1px solid var(--border-color);
   color: var(--primary-text);
   font-size: 1rem;
@@ -241,28 +245,54 @@ textarea {
   border: none;
   cursor: pointer;
   font-weight: bold;
-  transition: opacity 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px #00000033;
+  transform: translateY(0);
 }
 
 .primary-btn {
-  background: var(--accent-color);
-  color: white;
+  background: linear-gradient(135deg, var(--accent-color), #8a54ff);
+  color: #ffffff;
 }
 
 .danger-btn {
-  background: var(--danger-color);
-  color: white;
+  background: linear-gradient(135deg, var(--danger-color), #d9534f);
+  color: #ffffff;
 }
 
 .secondary-btn {
-  background: #555;
-  color: white;
+  background: linear-gradient(135deg, #555, #333);
+  color: #ffffff;
 }
 
 .primary-btn:hover,
 .danger-btn:hover,
 .secondary-btn:hover {
-  opacity: 0.85;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px #0000004d;
+}
+
+.primary-btn:active,
+.primary-btn:focus {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px #00000033;
+}
+
+.danger-btn:active,
+.danger-btn:focus {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px #00000033;
+}
+
+.secondary-btn:active,
+.secondary-btn:focus {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px #00000033;
+}
+
+.actions-buttons {
+  display: flex;
+  gap: 1rem;
 }
 
 /* Responsive Design */

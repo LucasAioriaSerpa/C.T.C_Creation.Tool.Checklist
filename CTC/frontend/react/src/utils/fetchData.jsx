@@ -1,23 +1,16 @@
-import authService from "./auth/authService"
-
 const API_URL = import.meta.env.VITE_API_URL
 
-export async function fetchData(endPoint) {
-    const URL = `${API_URL}${endPoint}`
-    const token = authService.getToken()
-    const headers = {
-        'Content-Type': 'application/json'
-    }
-    if (token) { headers['Authorization'] = `Bearer ${token}` }
-    const response = await fetch(URL)
-    if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Falha ao receber os dados de ${endPoint}: ${errorText}`)
-    }
+export const fetchData = async (endpoint, options = {}) => {
+    const url = `${API_URL}${endpoint}`;
     try {
-        const data = await response.json()
-        return data
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Falha ao receber os dados de ${endpoint}: ${errorData.message}`);
+        }
+        return await response.json();
     } catch (error) {
-        throw new Error(`Falha ao parsear JSON de ${endPoint}: ${error.message}`)
+        console.error("Erro na requisição:", error);
+        throw error;
     }
-}
+};

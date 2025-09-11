@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header.jsx";
+import { fetchData } from "../utils/fetchData.jsx";
 import { BackBtn } from "../components/backBtn.jsx";
+import CreateNaoConformidadeModal from "../components/CreateNaoConformidadeModal.jsx";
+import ManageNaoConformidadeModal from "../components/ManageNaoConformidadeModal.jsx";
+import authService from "../utils/auth/authService.jsx";
 import "../css/checklistDetailPage.css";
 
 export default function ChecklistDetailPage() {
@@ -14,6 +18,12 @@ export default function ChecklistDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showNaoConformidadeModal, setShowNaoConformidadeModal] = useState(false);
+  const [selectedCriterioId, setSelectedCriterioId] = useState(null);
+  const [avaliacaoId, setAvaliacaoId] = useState(null);
+  const [editingProjectId, setEditingProjectId] = useState(null);
+  const [showManageNaoConformidadeModal, setShowManageNaoConformidadeModal] = useState(false);
+  const [selectedNaoConformidade, setSelectedNaoConformidade] = useState(null);
 
   // form criterio
   const [criterioDescricao, setCriterioDescricao] = useState("");
@@ -32,22 +42,48 @@ export default function ChecklistDetailPage() {
     setProjetoFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const fetchData = () => {
-    fetch(`${API_URL}/API/checklist/${id}`)
-      .then(r => r.json())
-      .then(resp => {
-        setData(resp);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
+  const fetchChecklistData = async () => {
+    try {
+      const url = `/API/checklist/${id}${avaliacaoId ? `?id_avaliacao=${avaliacaoId}` : ''}`;
+      const responseData = await fetchData(url);
+      setData(responseData);
+      setLoading(false);
+      setAvaliacaoId(responseData.id_avaliacao);
+    } catch (error) {
+      console.error("Erro ao buscar dados da checklist: ", error);
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchData();
-  }, [API_URL, id]);
+    fetchChecklistData();
+  }, [id, avaliacaoId]);
+
+  const handleStartAvaliacao = async (projetoId) => {
+    const userId = authService.getUserId();
+    if (!userId) {
+      return alert("Não foi possível iniciar a avaliação. Usuário não autenticado.");
+    }
+    if (!projetoId) {
+      return alert("Não foi possível iniciar a avaliação. Projeto inválido.");
+    }
+    try {
+      const avaliacao = await fetchData('/API/avaliacao', {
+        method: 'POST',
+        body: JSON.stringify({
+          id_auditor: Number(userId),
+          id_projeto: Number(projetoId),
+          id_checklist: Number(id)
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      setAvaliacaoId(avaliacao.id_avaliacao);
+      alert("Avaliação iniciada com sucesso!");
+    } catch (error) {
+      console.error("Erro ao iniciar avaliação:", error);
+      alert("Erro ao iniciar avaliação.");
+    }
+  };
 
   const handleDelete = async () => {
     if (!confirm("Tem certeza que deseja excluir essa checklist e todos os dados relacionados?")) return;
@@ -64,17 +100,17 @@ export default function ChecklistDetailPage() {
     e.preventDefault();
     if (!criterioDescricao) return alert("Descreva o critério");
     const res = await fetch(`${API_URL}/API/criterio`, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
+      method: 'POST',
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         descricao: criterioDescricao,
-        classificacao: "N/A", // Default value
+        classificacao: "N/A",
         id_checklist: Number(id)
       })
     });
     if (res.status === 201) {
       alert("Critério criado");
-      fetchData(); // Refresh data
+      fetchChecklistData();
       setCriterioDescricao("");
     } else {
       alert("Erro ao criar critério");
@@ -82,16 +118,32 @@ export default function ChecklistDetailPage() {
   };
 
   const handleUpdateCriterio = async (criterioId, newClassificacao) => {
-    const res = await fetch(`${API_URL}/API/criterio/${criterioId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ classificacao: newClassificacao }),
-    });
-
-    if (res.ok) {
-      // alert("Critério atualizado");
-      fetchData(); // Refresh data to show the change
-    } else {
+    if (!avaliacaoId) { return alert("Nenhuma avaliação ativa. Clique em 'Avaliar' em um dos projetos para começar."); }
+    const oldData = data;
+    const newData = {
+      ...data,
+      criterios: data.criterios.map(c =>
+        c.id_criterio === criterioId ? { ...c, classificacao_resposta: newClassificacao } : c
+      )
+    };
+    setData(newData);
+    try {
+      const res = await fetch(`${API_URL}/API/resposta`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_avaliacao: avaliacaoId,
+          id_criterio: criterioId,
+          classificacao: newClassificacao,
+        }),
+      });
+      if (!res.ok) {
+        setData(oldData);
+        alert("Erro ao atualizar critério");
+      }
+    } catch (error) {
+      setData(oldData);
+      console.error("Erro ao atualizar critério:", error);
       alert("Erro ao atualizar critério");
     }
   };
@@ -101,13 +153,14 @@ export default function ChecklistDetailPage() {
     if (!projetoFormData.nome) return alert("Informe o nome do projeto");
     const res = await fetch(`${API_URL}/API/projeto`, {
       method: "POST",
-      headers: {"Content-Type":"application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...projetoFormData, id_checklist: Number(id) })
     });
-    if (res.status === 201) {
+    if (res.ok) {
       alert("Projeto criado com sucesso!");
-      fetchData(); // Refresh
+      fetchChecklistData();
       setProjetoFormData({ nome: "", descricao: "", responsavel_nome: "", responsavel_email: "", gestor_email: "" });
+      setShowCreateForm(false);
     } else {
       alert("Erro ao criar projeto");
     }
@@ -115,38 +168,52 @@ export default function ChecklistDetailPage() {
 
   const handleUpdateProjeto = async (e) => {
     e.preventDefault();
-    const projetoId = data.projetos[0]?.id_projeto;
-    if (!projetoId) return alert("ID do projeto não encontrado.");
-
-    const res = await fetch(`${API_URL}/API/projeto/${projetoId}`, {
+    if (!editingProjectId) return alert("ID do projeto não encontrado.");
+    const res = await fetch(`${API_URL}/API/projeto/${editingProjectId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(projetoFormData),
     });
-
     if (res.ok) {
       alert("Projeto atualizado com sucesso!");
-      fetchData();
+      fetchChecklistData();
       setIsEditing(false);
+      setEditingProjectId(null);
     } else {
       alert("Erro ao atualizar projeto.");
     }
   };
 
-  const handleEditClick = () => {
-    const projeto = data.projetos[0];
-    if (projeto) {
-      setProjetoFormData({
-        nome: projeto.nome,
-        descricao: projeto.descricao,
-        responsavel_nome: projeto.responsavel_nome,
-        responsavel_email: projeto.responsavel_email,
-        gestor_email: projeto.gestor_email,
-      });
-      setIsEditing(true);
+  const handleDeleteProjeto = async (projetoId) => {
+    if (!projetoId) return alert("Nenhum projeto para excluir!");
+    if (!confirm("Tem certeza que deseja excluir este projeto?")) return;
+    const response = await fetch(`${API_URL}/API/projeto/${projetoId}`, { method: "DELETE" });
+    if (response.ok) {
+      alert("Projeto excluido com sucesso!");
+      fetchChecklistData();
+    } else {
+      alert("Erro ao excluir projeto!");
     }
   };
 
+  const handleEditClick = (projeto) => {
+    setProjetoFormData({
+      nome: projeto.nome,
+      descricao: projeto.descricao,
+      responsavel_nome: projeto.responsavel_nome,
+      responsavel_email: projeto.responsavel_email,
+      gestor_email: projeto.gestor_email,
+    });
+    setEditingProjectId(projeto.id_projeto);
+    setIsEditing(true);
+    setShowCreateForm(false);
+  };
+
+  const handleCloseManageModal = () => {
+    setShowManageNaoConformidadeModal(false);
+    setSelectedNaoConformidade(null);
+    fetchChecklistData();
+  };
 
   if (loading) return (<><Header /><div className="container"><p>Carregando...</p></div></>);
   if (!data) return (<><Header /><div className="container"><p>Erro ao carregar dados.</p></div></>);
@@ -154,6 +221,8 @@ export default function ChecklistDetailPage() {
   const checklist = data.checklist;
   const criterios = data.criterios || [];
   const projetos = data.projetos || [];
+  const aderencia = data.aderencia;
+  const nao_conformidades = data.nao_conformidades || [];
 
   const renderProjetoForm = (submitHandler, isUpdate = false) => (
     <div className="add-projeto-form">
@@ -185,9 +254,7 @@ export default function ChecklistDetailPage() {
             <button className="danger-btn" onClick={handleDelete}>Excluir Checklist</button>
           </div>
         </div>
-
         <div className="detail-content">
-          {/* Seção de Informações da Checklist */}
           <section className="detail-section info-section">
             <div className="info-header">
               <h3>Informações da Checklist</h3>
@@ -195,9 +262,15 @@ export default function ChecklistDetailPage() {
             <p><strong>Descrição:</strong> {checklist.descricao}</p>
             <p><strong>Criador (id):</strong> {checklist.criado_por}</p>
             <p><strong>Data criação:</strong> {new Date(checklist.criado_em).toLocaleDateString()}</p>
+            {aderencia !== null && (
+              <p>
+                <strong>Aderência:</strong>
+                <span className={`aderencia-valor ${aderencia >= 0.7 ? 'success' : 'danger'}`}>
+                  {(aderencia * 100).toFixed(2)}%
+                </span>
+              </p>
+            )}
           </section>
-
-          {/* Seção de Critérios */}
           <section className="detail-section criterios-section">
             <h3>Critérios</h3>
             {criterios.length === 0 ? <p>Nenhum critério cadastrado.</p> : (
@@ -210,73 +283,138 @@ export default function ChecklistDetailPage() {
                       <th className="radio-option">SIM</th>
                       <th className="radio-option">NÃO</th>
                       <th className="radio-option">N/A</th>
+                      <th>Ações</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {criterios.map(c => (
-                      <tr key={c.id_criterio}>
-                        <td>{c.id_criterio}</td>
-                        <td>{c.descricao}</td>
-                        <td className="radio-cell">
-                          <input id={`sim-${c.id_criterio}`} type="radio" name={`criterio-${c.id_criterio}`} checked={c.classificacao === 'SIM'} onChange={() => handleUpdateCriterio(c.id_criterio, 'SIM')} />
-                          <label htmlFor={`sim-${c.id_criterio}`}>SIM</label>
-                        </td>
-                        <td className="radio-cell">
-                          <input id={`nao-${c.id_criterio}`} type="radio" name={`criterio-${c.id_criterio}`} checked={c.classificacao === 'NAO'} onChange={() => handleUpdateCriterio(c.id_criterio, 'NAO')} />
-                          <label htmlFor={`nao-${c.id_criterio}`}>NÃO</label>
-                        </td>
-                        <td className="radio-cell">
-                          <input id={`na-${c.id_criterio}`} type="radio" name={`criterio-${c.id_criterio}`} checked={c.classificacao === 'N/A'} onChange={() => handleUpdateCriterio(c.id_criterio, 'N/A')} />
-                          <label htmlFor={`na-${c.id_criterio}`}>N/A</label>
-                        </td>
+                    {criterios.length === 0 ? (
+                      <tr>
+                        <td colSpan="6">Nenhum critério cadastrado.</td>
                       </tr>
-                    ))}
+                    ) : (criterios.map(c => {
+                      const existingNc = nao_conformidades.find(nc => nc.id_criterio === c.id_criterio);
+                      const isNcButtonDisabled = c.classificacao_resposta !== 'NAO' || !avaliacaoId || existingNc;
+                      return (
+                        <tr key={c.id_criterio}>
+                          <td>{c.id_criterio}</td>
+                          <td>{c.descricao}</td>
+                          <td className="radio-cell">
+                            <input
+                              id={`sim-${c.id_criterio}`}
+                              type="radio"
+                              name={`criterio-${c.id_criterio}`}
+                              checked={c.classificacao_resposta === 'SIM'}
+                              onChange={() => handleUpdateCriterio(c.id_criterio, 'SIM')}
+                            />
+                            <label htmlFor={`sim-${c.id_criterio}`}>SIM</label>
+                          </td>
+                          <td className="radio-cell">
+                            <input
+                              id={`nao-${c.id_criterio}`}
+                              type="radio"
+                              name={`criterio-${c.id_criterio}`}
+                              checked={c.classificacao_resposta === 'NAO'}
+                              onChange={() => handleUpdateCriterio(c.id_criterio, 'NAO')}
+                            />
+                            <label htmlFor={`nao-${c.id_criterio}`}>NÃO</label>
+                          </td>
+                          <td className="radio-cell">
+                            <input
+                              id={`na-${c.id_criterio}`}
+                              type="radio"
+                              name={`criterio-${c.id_criterio}`}
+                              checked={c.classificacao_resposta === 'N/A'}
+                              onChange={() => handleUpdateCriterio(c.id_criterio, 'N/A')}
+                            />
+                            <label htmlFor={`na-${c.id_criterio}`}>N/A</label>
+                          </td>
+                          <td className="action-cell">
+                            <button
+                              className="add-nc-btn"
+                              onClick={() => {
+                                if (!avaliacaoId) { return alert("Nenhuma avaliação ativa. Clique em 'Avaliar' em um dos projetos para começar."); }
+                                setSelectedCriterioId(c.id_criterio);
+                                setShowNaoConformidadeModal(true);
+                              }}
+                              disabled={isNcButtonDisabled}
+                            >
+                              NC
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    }
+                  ))}
                   </tbody>
                 </table>
               </div>
             )}
             <form className="form-inline" onSubmit={handleAddCriterio}>
-              <input placeholder="Descrição do novo critério" value={criterioDescricao} onChange={(e) => setCriterioDescricao(e.target.value)} />
+              <input type="text" placeholder="Descrição do novo critério" value={criterioDescricao} onChange={(e) => setCriterioDescricao(e.target.value)} />
               <button className="primary-btn" type="submit">Adicionar Critério</button>
             </form>
           </section>
-
-          {/* Seção de Projetos */}
           <section className="detail-section projetos-section">
             <div className="info-header">
-              <h3>Projeto</h3>
-              {projetos.length > 0 && !isEditing && (
-                <button className="primary-btn" onClick={handleEditClick}>Editar Projeto</button>
-              )}
+              <h3>Projetos</h3>
+              <button
+                className="primary-btn"
+                onClick={() => {
+                  setShowCreateForm(!showCreateForm);
+                  setIsEditing(false);
+                }}
+              >
+                {showCreateForm ? "Fechar Formulário" : "Criar Projeto"}
+              </button>
             </div>
+            {showCreateForm && renderProjetoForm(handleAddProjeto, false)}
+            {isEditing && renderProjetoForm(handleUpdateProjeto, true)}
             {projetos.length > 0 ? (
-              isEditing ? (
-                renderProjetoForm(handleUpdateProjeto, true)
-              ) : (
-                <div className="projetos-grid">
-                  {projetos.map(p => (
-                    <div className="projeto-card" key={p.id_projeto}>
-                      <h4>{p.nome}</h4>
-                      <p>{p.descricao}</p>
-                      <p className="responsavel-info"><small>{p.responsavel_nome} • {p.responsavel_email}</small></p>
-                      <p className="responsavel-info"><small>Gestor: {p.gestor_email}</small></p>
+              <div className="projetos-grid">
+                {projetos.map(p => (
+                  <div className="projeto-card" key={p.id_projeto}>
+                    <div className="projeto-actions">
+                      <button className="secondary-btn" onClick={() => handleEditClick(p)}>Editar</button>
+                      <button className="danger-btn" onClick={() => handleDeleteProjeto(p.id_projeto)}>Excluir</button>
+                      <button
+                        className="primary-btn"
+                        onClick={() => handleStartAvaliacao(p.id_projeto)}
+                      >
+                        Avaliar
+                      </button>
                     </div>
-                  ))}
-                </div>
-              )
+                    <h4>{p.nome}</h4>
+                    <p>{p.descricao}</p>
+                    <p className="responsavel-info"><small>{p.responsavel_nome} • {p.responsavel_email}</small></p>
+                    <p className="responsavel-info"><small>Gestor: {p.gestor_email}</small></p>
+                  </div>
+                ))}
+              </div>
             ) : (
-              showCreateForm ? (
-                renderProjetoForm(handleAddProjeto, false)
-              ) : (
-                <div className="text-center">
-                  <p>Nenhum projeto associado a esta checklist.</p>
-                  <button className="primary-btn" onClick={() => setShowCreateForm(true)}>Criar Novo Projeto</button>
-                </div>
-              )
+              <div className="text-center">
+                <p>Nenhum projeto associado a esta checklist.</p>
+              </div>
             )}
           </section>
         </div>
       </main>
+      {showNaoConformidadeModal && (
+        <CreateNaoConformidadeModal
+          idCriterio={selectedCriterioId}
+          idAvaliacao={avaliacaoId}
+          onClose={() => setShowNaoConformidadeModal(false)}
+          onCreated={() => {
+            setShowNaoConformidadeModal(false);
+            fetchChecklistData();
+          }}
+        />
+      )}
+      {showManageNaoConformidadeModal && (
+        <ManageNaoConformidadeModal
+          ncData={selectedNaoConformidade}
+          onClose={handleCloseManageModal}
+        />
+      )}
     </>
   );
 }

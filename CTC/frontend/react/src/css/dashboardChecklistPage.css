@@ -29,6 +29,7 @@ body {
   display: flex;
   width: 100%;
   max-width: 1200px;
+  background: linear-gradient(135deg, var(--background-dark) 0%, var(--background-light) 155%);
   justify-content: space-between;
   align-items: center;
   margin-bottom: 40px;

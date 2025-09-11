@@ -202,29 +202,58 @@ def create_checklist():
 def get_checklist(checklist_id):
     app.logger.info(f"GET /API/checklist/{checklist_id}")
     db = MGDB()
-
-    # checklist
-    checklist_rows = db.read("checklist", {"id_checklist": checklist_id})
-    if not checklist_rows:
-        return jsonify({"message": "Checklist não encontrada"}), 404
-    checklist = checklist_rows[0]
-
-    # criterios da checklist
-    criterios = db.read("criterio", {"id_checklist": checklist_id})
-
-    # projetos
-    projetos = db.read("projeto", {})
-
-    # avaliações relacionadas
-    avaliacoes = db.read("avaliacao", {"id_checklist": checklist_id})
-
-    response = {
-        "checklist": checklist,
-        "criterios": criterios,
-        "projetos": projetos,
-        "avaliacoes": avaliacoes
-    }
-    return jsonify(response), 200
+    try:
+        checklist_rows = db.read("checklist", {"id_checklist": checklist_id})
+        if not checklist_rows:
+            return jsonify({"message": "Checklist não encontrada"}), 404
+        checklist = checklist_rows[0]
+        criterios = db.read("criterio", {"id_checklist": checklist_id})
+        projetos = db.read("projeto", {})
+        avaliacoes = db.read("avaliacao", {"id_checklist": checklist_id})
+        aderencia = None
+        id_avaliacao_ativa = None
+        if avaliacoes:
+            query_avaliacao = "SELECT * FROM avaliacao WHERE id_checklist = ? ORDER BY data_avaliacao DESC LIMIT 1"
+            avaliacao_ativa_rows = db._execute(query_avaliacao, (checklist_id,), fetch=True)
+            if avaliacao_ativa_rows:
+                avaliacao_ativa = avaliacao_ativa_rows[0]
+                id_avaliacao_ativa = avaliacao_ativa['id_avaliacao']
+                query_respostas_counts = """
+                    SELECT
+                        SUM(CASE WHEN classificacao = 'SIM' THEN 1 ELSE 0 END) AS sim_count,
+                        SUM(CASE WHEN classificacao = 'N/A' THEN 1 ELSE 0 END) AS nao_aplicavel_count
+                    FROM resposta
+                    WHERE id_avaliacao = ?
+                """
+                counts_result = db._execute(query_respostas_counts, (id_avaliacao_ativa,), fetch=True)
+                sim_count = counts_result[0]['sim_count'] if counts_result and counts_result[0]['sim_count'] is not None else 0
+                nao_aplicavel_count = counts_result[0]['nao_aplicavel_count'] if counts_result and counts_result[0]['nao_aplicavel_count'] is not None else 0
+                total_criterios_com_resposta = sim_count + (len(criterios) - nao_aplicavel_count)
+                if total_criterios_com_resposta > 0:
+                    aderencia = (sim_count) / total_criterios_com_resposta
+        respostas_map = {}
+        if id_avaliacao_ativa:
+            query_respostas = "SELECT id_criterio, classificacao FROM resposta WHERE id_avaliacao = ?"
+            respostas = db._execute(query_respostas, (id_avaliacao_ativa,), fetch=True)
+            for r in respostas:
+                respostas_map[r['id_criterio']] = r['classificacao']
+        for criterio in criterios:
+            criterio['classificacao_resposta'] = respostas_map.get(criterio['id_criterio'], 'N/A')
+        response = {
+            "checklist": checklist,
+            "criterios": criterios,
+            "projetos": projetos,
+            "avaliacoes": avaliacoes,
+            "id_avaliacao": id_avaliacao_ativa,
+            "aderencia": aderencia
+        }
+        return jsonify(response), 200
+    except Exception as e:
+        app.logger.error(f"Erro ao buscar dados da checklist com ID {checklist_id}: {e}")
+        return jsonify({
+            "message": "Erro interno do servidor ao buscar checklist.",
+            "error_details": str(e)
+        }), 500
 
 @app.route('/API/checklist/<int:checklist_id>', methods=['DELETE'])
 def delete_checklist(checklist_id):
@@ -262,10 +291,8 @@ def create_criterio():
     descricao = data.get('descricao')
     classificacao = data.get('classificacao', '')
     id_checklist = data.get('id_checklist')
-
     if not all([descricao, id_checklist]):
         return jsonify({"message": "Campos obrigatórios: descricao, id_checklist"}), 400
-
     MGDB().create("criterio", {
         "descricao": descricao,
         "classificacao": classificacao,
@@ -305,10 +332,8 @@ def create_projeto():
     responsavel_nome = data.get('responsavel_nome', '')
     responsavel_email = data.get('responsavel_email', '')
     gestor_email = data.get('gestor_email', '')
-
     if not nome:
         return jsonify({"message": "Campo obrigatório: nome"}), 400
-
     MGDB().create("projeto", {
         "nome": nome,
         "descricao": descricao,
@@ -316,7 +341,39 @@ def create_projeto():
         "responsavel_email": responsavel_email,
         "gestor_email": gestor_email
     })
-    return jsonify({"message": "Projeto criado"}), 201
+    return jsonify({"message": "Projeto criado"}), 200
+
+@app.route('/API/projeto/<int:projeto_id>', methods=['DELETE'])
+def delete_projeto(projeto_id):
+    app.logger.info(f"   > DELETE /API/projeto/{projeto_id}")
+    db = MGDB()
+    result = db.delete("projeto", {'id_projeto': projeto_id})
+    if result: return jsonify({
+        "message": f"Projeto {projeto_id} removido com sucesso."
+    }), 200
+    return jsonify({
+        "message": "Projeto não encontrado ou erro ao remover!"
+    }), 400
+
+@app.route('/API/projeto/<int:projeto_id>', methods=['PUT'])
+def update_projeto(projeto_id):
+    app.logger.info(f"  > PUT /API/projeto/{projeto_id}")
+    if not request.is_json: return jsonify({
+        'message': "Content-Type deve ser application/json"
+    }), 400
+    data = request.get_json()
+    update_data = {k: v for k, v in data.items() if k != 'id_projeto'}
+    if not update_data: return ({
+        'message': "Nenhum dado para atualizar"
+    }), 400
+    db = MGDB()
+    result = db.update("projeto", {'id_projeto': projeto_id}, update_data)
+    if result: return jsonify({
+        'message': f"Projeto {projeto_id} atualizado com sucesso"
+    }), 200
+    return jsonify({
+        'message': "Projeto não encontrado ou erro ao atualizar."
+    }), 400
 
 @app.route('/API/sendEmail', methods=['POST'])
 def send_email():
@@ -343,5 +400,131 @@ def send_email():
     except Exception as e:
         app.logger.error(f"Erro ao enviar e-mail: {e}")
         return jsonify({"message": "Erro ao enviar e-mail"}), 500
+
+@app.route('/API/avaliacao', methods=['POST'])
+def create_avaliacao():
+    app.logger.info("POST /API/avaliacao")
+    if not request.is_json: return jsonify({
+        "message": "Content-Type deve ser application/json"
+    }), 400
+    data = request.get_json()
+    id_auditor = data.get('id_auditor')
+    id_projeto = data.get('id_projeto')
+    id_checklist = data.get('id_checklist')
+    if not all([id_auditor, id_projeto, id_checklist]): return jsonify({
+        "message": "Campos obrigatórios: id_auditor, id_projeto, id_checklist"
+    }), 400
+    try:
+        MGDB().create("avaliacao", {
+            "id_auditor": id_auditor,
+            "id_projeto": id_projeto,
+            "id_checklist": id_checklist
+        })
+        return jsonify({
+            "message": "Avaliação criada"
+        }), 200
+    except Exception as e:
+        app.logger.error(f"     > Erro ao criar avaliação: {e}")
+        return jsonify({
+            "message": "Erro ao criar avaliação"
+        }), 400
+
+@app.route('/API/avaliacao/<int:avaliacao_id>/respostas', methods=['GET'])
+def get_respostas_avaliacao(avaliacao_id):
+    app.logger.info(f"GET /API/avaliacao/{avaliacao_id}/respostas")
+    db = MGDB()
+    respostas = db.read("resposta", {"id_avaliacao": avaliacao_id})
+    return jsonify(respostas), 200
+
+@app.route('/API/naoconformidade', methods=['POST'])
+def create_nao_conformidade():
+    app.logger.info("POST /API/naoconformidade")
+    if not request.is_json: return jsonify({
+        "message": "Content-Type deve ser application/json"
+    }), 400
+    data = request.get_json()
+    id_avaliacao = data.get('id_avaliacao')
+    id_criterio = data.get('id_criterio')
+    descricao = data.get('descricao')
+    prazo = data.get('prazo')
+    if not all([descricao, prazo, id_avaliacao, id_criterio]): return jsonify({
+        "message": "Campos obrigatórios: descricao, prazo, id_avaliacao, id_criterio"
+    }), 400
+    try:
+        MGDB().create("nao_conformidade", {
+            "descricao": descricao,
+            "prazo": prazo,
+            "status": "pendente",
+            "ultima_atualizacao": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+            "tentativas": 0,
+            "id_avaliacao": id_avaliacao,
+            "id_criterio": id_criterio
+        })
+        return jsonify({
+            "message": "Não conformidade FOI registrada com sucesso!"
+        }), 200
+    except Exception as e:
+        app.logger.error(f"     > Erro ao criar não conformidade: {e}")
+        return jsonify({
+            "message": "Erro ao criar não conformidade"
+        }), 400
+
+@app.route('/API/naoconformidade/<int:nc_id>', methods=['PUT'])
+def update_nao_conformidade(nc_id):
+    app.logger.info(f"PUT /API/naoconformidade/{nc_id}")
+    if not request.is_json:
+        return jsonify({"message": "Content-Type deve ser application/json"}), 400
+    data = request.get_json()
+    db = MGDB()
+    try:
+        existing_nc = db.read("nao_conformidade", {"id_nao_conformidade": nc_id})
+        if not existing_nc:
+            return jsonify({"message": "Não conformidade não encontrada"}), 404
+        update_fields = {}
+        if 'descricao' in data:
+            update_fields['descricao'] = data['descricao']
+        if 'prazo' in data:
+            update_fields['prazo'] = data['prazo']
+        if 'status' in data:
+            update_fields['status'] = data['status']
+        if not update_fields:
+            return jsonify({"message": "Nenhum campo para atualizar fornecido"}), 400
+        update_fields['ultima_atualizacao'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        db.update("nao_conformidade", {"id_nao_conformidade": nc_id}, {"$set": update_fields})
+        return jsonify({"message": "Não conformidade atualizada com sucesso!"}), 200
+    except Exception as e:
+        app.logger.error(f"  > Erro ao atualizar não conformidade: {e}")
+        return jsonify({"message": "Erro ao atualizar não conformidade"}), 500
+
+@app.route('/API/resposta', methods=['PUT'])
+def update_resposta():
+    app.logger.info("PUT /API/resposta")
+    if not request.is_json: return jsonify({
+        "message": "Content-Type deve ser application/json"
+    }), 400
+    data = request.get_json()
+    id_avaliacao = data.get('id_avaliacao')
+    id_criterio = data.get('id_criterio')
+    classificacao = data.get('classificacao')
+    if not all([id_avaliacao, id_criterio, classificacao]):
+        return jsonify({
+            "message": "Campos obrigatórios: id_avaliacao, id_criterio, classificacao"
+        }), 400
+    db = MGDB()
+    resposta_existente = db.read("resposta", {"id_avaliacao": id_avaliacao, "id_criterio": id_criterio})
+    if resposta_existente:
+        db.update("resposta", {"classificacao": classificacao}, {"id_avaliacao": id_avaliacao, "id_criterio": id_criterio})
+        return jsonify({
+            "message": "Resposta atualizada com sucesso"
+        }), 200
+    else:
+        db.create("resposta", {
+            "id_avaliacao": id_avaliacao,
+            "id_criterio": id_criterio,
+            "classificacao": classificacao,
+        })
+        return jsonify({
+            "message": "Resposta criada com sucesso"
+        }), 200
 
 if __name__ == '__main__': app.run(debug=True)
