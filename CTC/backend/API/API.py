@@ -388,17 +388,27 @@ def send_email():
         "message": "Content-Type deve ser application/json"
     }), 400
     data = request.get_json()
-    autor = data.get('autor', app.config['MAIL_DEFAULT_SENDER'])
+    autor = data.get('autor')
     recipiente = data.get('recipiente')
     assunto = data.get('assunto', 'Sem Assunto')
-    corpo = data.get('message', '')
-    if not recipiente: return jsonify({
-        "message": "Erro: Campo de recipiente faltando"
-    }), 400
+    corpo = data.get('corpo')
+
+    lista_cc = []
+    if autor and autor != recipiente:
+        lista_cc.append(autor)
+
+
+    if not recipiente:
+        return jsonify({"message": "Erro: Campo de recipiente faltando"}), 400
+    if not corpo:
+        return jsonify({"message": "Erro: Conteudo do E-mail vazio"}), 400
+
     try:
         msg = Message(assunto,
-                      sender=autor,
+                      sender=app.config['MAIL_DEFAULT_SENDER'],
                       recipients=[recipiente],
+                      reply_to=autor,
+                      cc = lista_cc,
                       body=corpo)
         mail.send(msg)
         app.logger.info(f"E-mail enviado para {recipiente}")
