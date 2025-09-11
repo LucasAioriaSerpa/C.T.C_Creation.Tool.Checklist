@@ -187,6 +187,7 @@ def create_checklist():
             "INSERT INTO checklist (nome, descricao, criado_por) VALUES (?, ?, ?)",
             (nome, descricao, criado_por)
         )
+        id_checklist = cursor.lastrowid
         conn.commit()
         if projeto:
             projeto_nome = projeto.get('nome')
@@ -194,21 +195,24 @@ def create_checklist():
             responsavel_nome = projeto.get('responsavel_nome', '')
             responsavel_email = projeto.get('responsavel_email', '')
             gestor_email = projeto.get('gestor_email', '')
-            if not projeto_nome:
-                return jsonify({"message": "Campo obrigatório no projeto: nome"}), 400
+            if not projeto_nome: return jsonify({"message": "Campo obrigatório no projeto: nome"}), 400
             cursor.execute(
                 "INSERT INTO projeto (nome, descricao, responsavel_nome, responsavel_email, gestor_email) VALUES (?, ?, ?, ?, ?)",
                 (projeto_nome, projeto_descricao, responsavel_nome, responsavel_email, gestor_email)
             )
+            projeto_id = cursor.lastrowid
             conn.commit()
-        new_id = cursor.lastrowid
+            cursor.execute(
+                "INSERT INTO avaliacao (data_avaliacao, aderencia, status, id_auditor, id_projeto, id_checklist) VALUES (?, ?, ?, ?, ?, ?)",
+                (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 0.0, 'pendente', criado_por, projeto_id, id_checklist))
+            conn.commit()
+        else: raise ValueError("Projeto não fornecido!")
     except Exception as e:
         app.logger.error(f"Erro ao inserir checklist: {e}")
         return jsonify({"message": "Erro ao criar checklist"}), 500
     finally:
         conn.close()
-
-    return jsonify({"message": "Checklist criada com sucesso", "id_checklist": new_id}), 200
+    return jsonify({"message": "Checklist criada com sucesso", "id_checklist": id_checklist}), 200
 
 @app.route('/API/checklist/<int:checklist_id>', methods=['GET'])
 def get_checklist(checklist_id):
@@ -220,16 +224,23 @@ def get_checklist(checklist_id):
             return jsonify({"message": "Checklist não encontrada"}), 404
         checklist = checklist_rows[0]
         criterios = db.read("criterio", {"id_checklist": checklist_id})
-        projetos = db.read("projeto", {})
+        query_projetos = """
+            SELECT p.* FROM projeto p
+                JOIN avaliacao a ON p.id_projeto = a.id_projeto
+            WHERE a.id_checklist = ?
+        """
+        projetos = db._execute(query_projetos, (checklist_id,), fetch=True)
         avaliacoes = db.read("avaliacao", {"id_checklist": checklist_id})
-        aderencia = None
+        aderencia = 0
         id_avaliacao_ativa = None
+        ultima_avaliacao_ativa = None
         if avaliacoes:
             query_avaliacao = "SELECT * FROM avaliacao WHERE id_checklist = ? ORDER BY data_avaliacao DESC LIMIT 1"
             avaliacao_ativa_rows = db._execute(query_avaliacao, (checklist_id,), fetch=True)
             if avaliacao_ativa_rows:
                 avaliacao_ativa = avaliacao_ativa_rows[0]
                 id_avaliacao_ativa = avaliacao_ativa['id_avaliacao']
+                ultima_avaliacao_ativa = avaliacao_ativa['data_avaliacao']
                 query_respostas_counts = """
                     SELECT
                         SUM(CASE WHEN classificacao = 'SIM' THEN 1 ELSE 0 END) AS sim_count,
@@ -240,14 +251,20 @@ def get_checklist(checklist_id):
                 counts_result = db._execute(query_respostas_counts, (id_avaliacao_ativa,), fetch=True)
                 sim_count = counts_result[0]['sim_count'] if counts_result and counts_result[0]['sim_count'] is not None else 0
                 nao_aplicavel_count = counts_result[0]['nao_aplicavel_count'] if counts_result and counts_result[0]['nao_aplicavel_count'] is not None else 0
-                total_criterios_com_resposta = sim_count + (len(criterios) - nao_aplicavel_count)
-                if total_criterios_com_resposta > 0: aderencia = (sim_count) / total_criterios_com_resposta
+                criterios_list = criterios if criterios is not None else []
+                total_criterios = len(criterios_list)
+                total_criterios_com_resposta = total_criterios - nao_aplicavel_count
+                app.logger.info(f"Total critérios: {total_criterios}, SIM: {sim_count}, N/A: {nao_aplicavel_count}, Total com resposta: {total_criterios_com_resposta}")
+                if total_criterios_com_resposta > 0: aderencia = sim_count / total_criterios_com_resposta
         respostas_map = {}
         if id_avaliacao_ativa:
             query_respostas = "SELECT id_criterio, classificacao FROM resposta WHERE id_avaliacao = ?"
             respostas = db._execute(query_respostas, (id_avaliacao_ativa,), fetch=True)
+            if respostas is None:
+                respostas = []
             for r in respostas:
                 respostas_map[r['id_criterio']] = r['classificacao']
+        criterios = criterios if criterios is not None else []
         for criterio in criterios:
             criterio['classificacao_resposta'] = respostas_map.get(criterio['id_criterio'], 'N/A')
         response = {
@@ -256,8 +273,10 @@ def get_checklist(checklist_id):
             "projetos": projetos,
             "avaliacoes": avaliacoes,
             "id_avaliacao": id_avaliacao_ativa,
+            "ultima_avaliacao": ultima_avaliacao_ativa,
             "aderencia": aderencia
         }
+        db.update("avaliacao", {"aderencia": round(aderencia * 100, 2)}, {"id_avaliacao": id_avaliacao_ativa})
         return jsonify(response), 200
     except Exception as e:
         app.logger.error(f"Erro ao buscar dados da checklist com ID {checklist_id}: {e}")
@@ -281,6 +300,9 @@ def delete_checklist(checklist_id):
         for aid in avaliacao_ids: db.delete("nao_conformidade", {"id_avaliacao": aid})
         db.delete("avaliacao", {"id_checklist": checklist_id})
     if criterio_ids: db.delete("criterio", {"id_checklist": checklist_id})
+    projeto_id = avaliacoes[0]['id_projeto'] if avaliacoes else None
+    projeto = db.read("projeto", {"id_projeto": projeto_id}) if projeto_id else None
+    if projeto: db.delete("projeto", {"id_projeto": projeto_id})
     respostas = db.read("resposta", {"id_avaliacao": avaliacao_ids}) if avaliacao_ids else []
     if respostas: db.delete("resposta", {"id_avaliacao": avaliacao_ids})
     db.delete("checklist", {"id_checklist": checklist_id})
@@ -364,22 +386,19 @@ def delete_projeto(projeto_id):
 @app.route('/API/projeto/<int:projeto_id>', methods=['PUT'])
 def update_projeto(projeto_id):
     app.logger.info(f"  > PUT /API/projeto/{projeto_id}")
-    if not request.is_json: return jsonify({
-        'message': "Content-Type deve ser application/json"
-    }), 400
+    if not request.is_json: return jsonify({'message': "Content-Type deve ser application/json"}), 400
     data = request.get_json()
     update_data = {k: v for k, v in data.items() if k != 'id_projeto'}
-    if not update_data: return ({
-        'message': "Nenhum dado para atualizar"
-    }), 400
+    if not update_data:return jsonify({'message': "Nenhum dado para atualizar"}), 400
     db = MGDB()
-    result = db.update("projeto", {'id_projeto': projeto_id}, update_data)
-    if result: return jsonify({
-        'message': f"Projeto {projeto_id} atualizado com sucesso"
-    }), 200
-    return jsonify({
-        'message': "Projeto não encontrado ou erro ao atualizar."
-    }), 400
+    try:
+        result = db.update("projeto", update_data, {'id_projeto': projeto_id})
+        return jsonify({
+            'message': f"Projeto {projeto_id} atualizado com sucesso"
+        }), 200
+    except Exception as e:
+        app.logger.error(f"     > Erro ao atualizar projeto: {e}")
+        return jsonify({'message': "Erro ao atualizar projeto"}), 400
 
 @app.route('/API/sendEmail', methods=['POST'])
 def send_email():

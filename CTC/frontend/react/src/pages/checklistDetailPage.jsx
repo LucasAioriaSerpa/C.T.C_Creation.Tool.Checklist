@@ -5,7 +5,6 @@ import { fetchData } from "../utils/fetchData.jsx";
 import { BackBtn } from "../components/backBtn.jsx";
 import CreateNaoConformidadeModal from "../components/CreateNaoConformidadeModal.jsx";
 import ManageNaoConformidadeModal from "../components/ManageNaoConformidadeModal.jsx";
-import authService from "../utils/auth/authService.jsx";
 import "../css/checklistDetailPage.css";
 
 export default function ChecklistDetailPage() {
@@ -13,7 +12,6 @@ export default function ChecklistDetailPage() {
   const navigate = useNavigate();
   const VITE_API_URL = 'http://localhost:5000';
   const API_URL = VITE_API_URL;
-
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -24,10 +22,8 @@ export default function ChecklistDetailPage() {
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [showManageNaoConformidadeModal, setShowManageNaoConformidadeModal] = useState(false);
   const [selectedNaoConformidade, setSelectedNaoConformidade] = useState(null);
-
   // form criterio
   const [criterioDescricao, setCriterioDescricao] = useState("");
-
   // form projeto
   const [projetoFormData, setProjetoFormData] = useState({
     nome: "",
@@ -58,32 +54,6 @@ export default function ChecklistDetailPage() {
   useEffect(() => {
     fetchChecklistData();
   }, [id, avaliacaoId]);
-
-  const handleStartAvaliacao = async (projetoId) => {
-    const userId = authService.getUserId();
-    if (!userId) {
-      return alert("Não foi possível iniciar a avaliação. Usuário não autenticado.");
-    }
-    if (!projetoId) {
-      return alert("Não foi possível iniciar a avaliação. Projeto inválido.");
-    }
-    try {
-      const avaliacao = await fetchData('/API/avaliacao', {
-        method: 'POST',
-        body: JSON.stringify({
-          id_auditor: Number(userId),
-          id_projeto: Number(projetoId),
-          id_checklist: Number(id)
-        }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-      setAvaliacaoId(avaliacao.id_avaliacao);
-      alert("Avaliação iniciada com sucesso!");
-    } catch (error) {
-      console.error("Erro ao iniciar avaliação:", error);
-      alert("Erro ao iniciar avaliação.");
-    }
-  };
 
   const handleDelete = async () => {
     if (!confirm("Tem certeza que deseja excluir essa checklist e todos os dados relacionados?")) return;
@@ -154,6 +124,7 @@ export default function ChecklistDetailPage() {
           setShowNaoConformidadeModal(true);
         }
       }
+      fetchChecklistData();
     } catch (error) {
       setData(oldData);
       console.error("Erro ao atualizar critério:", error);
@@ -166,8 +137,8 @@ export default function ChecklistDetailPage() {
     if (!editingProjectId) return alert("ID do projeto não encontrado.");
     const res = await fetch(`${API_URL}/API/projeto/${editingProjectId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(projetoFormData),
+      headers: { "Content-Type": "application/json" },
     });
     if (res.ok) {
       alert("Projeto atualizado com sucesso!");
@@ -176,18 +147,6 @@ export default function ChecklistDetailPage() {
       setEditingProjectId(null);
     } else {
       alert("Erro ao atualizar projeto.");
-    }
-  };
-
-  const handleDeleteProjeto = async (projetoId) => {
-    if (!projetoId) return alert("Nenhum projeto para excluir!");
-    if (!confirm("Tem certeza que deseja excluir este projeto?")) return;
-    const response = await fetch(`${API_URL}/API/projeto/${projetoId}`, { method: "DELETE" });
-    if (response.ok) {
-      alert("Projeto excluido com sucesso!");
-      fetchChecklistData();
-    } else {
-      alert("Erro ao excluir projeto!");
     }
   };
 
@@ -263,12 +222,18 @@ export default function ChecklistDetailPage() {
             )}
             {aderencia !== null && (
               <p>
-                <strong>Aderência:</strong>
-                <span className={`aderencia-valor ${aderencia >= 0.7 ? 'success' : 'danger'}`}>
+                <strong>Aderência: </strong>
+                <span className={`aderencia-valor-${aderencia >= 0.7 ? 'success' : 'danger'}`}>
                   {(aderencia * 100).toFixed(2)}%
                 </span>
               </p>
             )}
+            <p>
+              <strong>Data avalidação:</strong>
+              <span className={`aderencia-valor ${aderencia >= 0.7 ? 'success' : 'danger'}`}>
+                {(aderencia * 100).toFixed(2)}%
+              </span>
+            </p>
           </section>
           <section className="detail-section criterios-section">
             <h3>Critérios</h3>
@@ -348,9 +313,6 @@ export default function ChecklistDetailPage() {
                   <div className="projeto-card" key={p.id_projeto}>
                     <div className="projeto-actions">
                       <button className="secondary-btn" onClick={() => handleEditClick(p)}>Editar</button>
-                      <button className="danger-btn" onClick={() => handleDeleteProjeto(p.id_projeto)}>Excluir</button>
-                      <button className="primary-btn" onClick={() => handleStartAvaliacao(p.id_projeto)}>Avaliar
-                      </button>
                     </div>
                     <h4>{p.nome}</h4>
                     <p>{p.descricao}</p>

@@ -71,6 +71,16 @@
   padding: 0;
 }
 
+.aderencia-valor-sucess {
+  color: var(--accent-color);
+  font-weight: bold;
+}
+
+.aderencia-valor-danger {
+  color: var(--danger-color);
+  font-weight: bold;
+}
+
 .info-section p {
   font-size: 1.1rem;
   max-width: 1000px;
