@@ -423,19 +423,12 @@ def send_email():
         return jsonify({"message": "Erro: Conteudo do E-mail vazio"}), 400
 
     try:
-<<<<<<< Updated upstream
         msg = Message(assunto,
                       sender=app.config['MAIL_DEFAULT_SENDER'],
                       recipients=[recipiente],
                       reply_to=autor,
                       cc = lista_cc,
                       body=corpo)
-=======
-        msg = Message(  assunto,
-                        sender=autor,
-                        recipients=[recipiente],
-                        body=corpo  )
->>>>>>> Stashed changes
         mail.send(msg)
         app.logger.info(f"E-mail enviado para {recipiente}")
         return jsonify({
