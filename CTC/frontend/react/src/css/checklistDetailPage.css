@@ -152,6 +152,7 @@
 
 .projeto-actions {
   display: flex;
+  justify-items: center;
   overflow-wrap: anywhere;
   justify-content: space-between;
   margin-bottom: 1rem;
@@ -161,7 +162,7 @@
 
 .projeto-card {
   background: var(--card-bg);
-  min-width: 300px;
+  width: 100%;
   max-width: fit-content;
   padding: 1.5rem;
   border-radius: 8px;

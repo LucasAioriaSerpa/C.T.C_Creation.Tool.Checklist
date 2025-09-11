@@ -3,20 +3,18 @@ import { fetchData } from "../utils/fetchData";
 import '../css/createChecklistModal.css';
 
 export default function CreateNaoConformidadeModal({ idCriterio, idAvaliacao, onClose, onCreated }) {
-    const [descricao, setDescricao] = useState("");
     const [prazo, setPrazo] = useState("");
     const [loading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!idAvaliacao || !idCriterio || !descricao) {
+        if (!idAvaliacao || !idCriterio) {
             alert("Por favor, preencha todos os campos.");
             return;
         }
         const payload = {
             id_avaliacao: idAvaliacao,
             id_criterio: idCriterio,
-            descricao: descricao,
             prazo: prazo
         };
         console.log("Enviando dados:", payload);
@@ -44,8 +42,6 @@ export default function CreateNaoConformidadeModal({ idCriterio, idAvaliacao, on
                 <h2>Registrar Não Conformidade</h2>
                 <form onSubmit={handleSubmit}>
                     <p>Para o Critério: <strong>{idCriterio}</strong></p>
-                    <label>Descrição</label>
-                    <textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} required />
                     <label>Prazo de Resolução</label>
                     <input type="date" value={prazo} onChange={(e) => setPrazo(e.target.value)} required />
                     <div className="modal-actions">

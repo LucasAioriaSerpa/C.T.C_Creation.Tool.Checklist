@@ -215,9 +215,9 @@ export default function ChecklistDetailPage() {
             <p><strong>Descrição:</strong> {checklist.descricao}</p>
             <p><strong>Criador (id):</strong> {checklist.criado_por}</p>
             <p><strong>Data criação:</strong> {new Date(checklist.criado_em).toLocaleDateString()}</p>
-            {data.ultima_avaliacao_data && (
+            {data.ultima_avaliacao && (
               <p>
-                <strong>Última Avaliação:</strong> {new Date(data.ultima_avaliacao_data).toLocaleDateString()}
+                <strong>Última Avaliação:</strong> {new Date(data.ultima_avaliacao).toLocaleDateString()}
               </p>
             )}
             {aderencia !== null && (
@@ -228,12 +228,6 @@ export default function ChecklistDetailPage() {
                 </span>
               </p>
             )}
-            <p>
-              <strong>Data avalidação:</strong>
-              <span className={`aderencia-valor ${aderencia >= 0.7 ? 'success' : 'danger'}`}>
-                {(aderencia * 100).toFixed(2)}%
-              </span>
-            </p>
           </section>
           <section className="detail-section criterios-section">
             <h3>Critérios</h3>
@@ -301,6 +295,32 @@ export default function ChecklistDetailPage() {
               <input type="text" placeholder="Descrição do novo critério" value={criterioDescricao} onChange={(e) => setCriterioDescricao(e.target.value)} />
               <button className="primary-btn" type="submit">Adicionar Critério</button>
             </form>
+          </section>
+          <section className="detail-section nao-conformidade-section">
+            <h3>Não Conformidades Registradas</h3>
+            {data.nao_conformidades && data.nao_conformidades.length > 0 ? (
+              <div className="nc-grid">
+                {data.nao_conformidades.map(nc => (
+                  <div key={nc.id_nao_conformidade} className="nc-card">
+                    <h4>Critério ID: {nc.id_criterio}</h4>
+                    <p><strong>Descrição:</strong> {nc.descricao}</p>
+                    <p><strong>Prazo:</strong> {new Date(nc.prazo).toLocaleDateString()}</p>
+                    <p><strong>Status:</strong> {nc.status}</p>
+                    <button
+                      className="secondary-btn"
+                      onClick={() => {
+                        setSelectedNaoConformidade(nc);
+                        setShowManageNaoConformidadeModal(true);
+                      }}
+                    >
+                      Gerenciar
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>Nenhuma não conformidade registrada nesta avaliação.</p>
+            )}
           </section>
           <section className="detail-section projetos-section">
             <div className="info-header">

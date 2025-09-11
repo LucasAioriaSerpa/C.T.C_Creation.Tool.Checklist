@@ -2,16 +2,15 @@ import React, { useState } from "react";
 import { fetchData } from "../utils/fetchData";
 import '../css/createChecklistModal.css'; // Reutilize o CSS
 
-export default function ManageNaoConformidadeModal({ ncData, onClose }) {
+export default function ManageNaoConformidadeModal({ ncData, onClose}) {
     const [loading, setLoading] = useState(false);
-    const [descricao, setDescricao] = useState(ncData.descricao);
+    const [descricao] = useState(ncData.descricao);
     const [prazo, setPrazo] = useState(ncData.prazo);
     const [status, setStatus] = useState(ncData.status);
     const handleUpdate = async (e) => {
         e.preventDefault();
         setLoading(true);
         const payload = {
-            descricao,
             prazo,
             status,
         };
@@ -72,7 +71,7 @@ export default function ManageNaoConformidadeModal({ ncData, onClose }) {
                 <form onSubmit={handleUpdate}>
                     <p>ID da Não Conformidade: <strong>{ncData.id_nao_conformidade}</strong></p>
                     <label>Descrição</label>
-                    <textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} required />
+                    <textarea value={descricao} disabled />
                     <label>Prazo de Resolução</label>
                     <input type="date" value={prazo} onChange={(e) => setPrazo(e.target.value)} required />
                     <label>Status</label>

@@ -234,6 +234,7 @@ def get_checklist(checklist_id):
         aderencia = 0
         id_avaliacao_ativa = None
         ultima_avaliacao_ativa = None
+        nao_conformidades = []
         if avaliacoes:
             query_avaliacao = "SELECT * FROM avaliacao WHERE id_checklist = ? ORDER BY data_avaliacao DESC LIMIT 1"
             avaliacao_ativa_rows = db._execute(query_avaliacao, (checklist_id,), fetch=True)
@@ -249,6 +250,7 @@ def get_checklist(checklist_id):
                     WHERE id_avaliacao = ?
                 """
                 counts_result = db._execute(query_respostas_counts, (id_avaliacao_ativa,), fetch=True)
+                nao_conformidades = db.read("nao_conformidade", {"id_avaliacao": id_avaliacao_ativa})
                 sim_count = counts_result[0]['sim_count'] if counts_result and counts_result[0]['sim_count'] is not None else 0
                 nao_aplicavel_count = counts_result[0]['nao_aplicavel_count'] if counts_result and counts_result[0]['nao_aplicavel_count'] is not None else 0
                 criterios_list = criterios if criterios is not None else []
@@ -274,6 +276,7 @@ def get_checklist(checklist_id):
             "avaliacoes": avaliacoes,
             "id_avaliacao": id_avaliacao_ativa,
             "ultima_avaliacao": ultima_avaliacao_ativa,
+            "nao_conformidades": nao_conformidades,
             "aderencia": aderencia
         }
         db.update("avaliacao", {"aderencia": round(aderencia * 100, 2)}, {"id_avaliacao": id_avaliacao_ativa})
@@ -482,11 +485,14 @@ def create_nao_conformidade():
         "message": "Content-Type deve ser application/json"
     }), 400
     data = request.get_json()
+    app.logger.info(f"  > Dados recebidos: {data}")
     id_avaliacao = data.get('id_avaliacao')
     id_criterio = data.get('id_criterio')
-    descricao = data.get('descricao')
     prazo = data.get('prazo')
-    if not all([descricao, prazo, id_avaliacao, id_criterio]): return jsonify({
+    db = MGDB()
+    criterio = db.read("criterio", {"id_criterio": id_criterio})
+    descricao = criterio[0]['descricao'] if criterio else None
+    if not all([prazo, id_avaliacao, id_criterio]): return jsonify({
         "message": "Campos obrigatórios: descricao, prazo, id_avaliacao, id_criterio"
     }), 400
     try:
@@ -522,8 +528,6 @@ def update_nao_conformidade(nc_id):
             "message": "Não conformidade não encontrada"
         }), 404
         update_fields = {}
-        if 'descricao' in data:
-            update_fields['descricao'] = data['descricao']
         if 'prazo' in data:
             update_fields['prazo'] = data['prazo']
         if 'status' in data:
