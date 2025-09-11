@@ -283,7 +283,6 @@ export default function ChecklistDetailPage() {
                       <th className="radio-option">SIM</th>
                       <th className="radio-option">NÃO</th>
                       <th className="radio-option">N/A</th>
-                      <th>Ações</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -308,26 +307,6 @@ export default function ChecklistDetailPage() {
                             />
                             <label htmlFor={`sim-${c.id_criterio}`}>SIM</label>
                           </td>
-                          <td className="radio-cell">
-                            <input
-                              id={`nao-${c.id_criterio}`}
-                              type="radio"
-                              name={`criterio-${c.id_criterio}`}
-                              checked={c.classificacao_resposta === 'NAO'}
-                              onChange={() => handleUpdateCriterio(c.id_criterio, 'NAO')}
-                            />
-                            <label htmlFor={`nao-${c.id_criterio}`}>NÃO</label>
-                          </td>
-                          <td className="radio-cell">
-                            <input
-                              id={`na-${c.id_criterio}`}
-                              type="radio"
-                              name={`criterio-${c.id_criterio}`}
-                              checked={c.classificacao_resposta === 'N/A'}
-                              onChange={() => handleUpdateCriterio(c.id_criterio, 'N/A')}
-                            />
-                            <label htmlFor={`na-${c.id_criterio}`}>N/A</label>
-                          </td>
                           <td className="action-cell">
                             <button
                               className="add-nc-btn"
@@ -338,8 +317,18 @@ export default function ChecklistDetailPage() {
                               }}
                               disabled={isNcButtonDisabled}
                             >
-                              NC
+                              NÃO
                             </button>
+                          </td>
+                          <td className="radio-cell">
+                            <input
+                              id={`na-${c.id_criterio}`}
+                              type="radio"
+                              name={`criterio-${c.id_criterio}`}
+                              checked={c.classificacao_resposta === 'N/A'}
+                              onChange={() => handleUpdateCriterio(c.id_criterio, 'N/A')}
+                            />
+                            <label htmlFor={`na-${c.id_criterio}`}>N/A</label>
                           </td>
                         </tr>
                       )
