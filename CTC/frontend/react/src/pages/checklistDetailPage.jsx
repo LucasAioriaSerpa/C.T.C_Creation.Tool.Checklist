@@ -118,7 +118,10 @@ export default function ChecklistDetailPage() {
   };
 
   const handleUpdateCriterio = async (criterioId, newClassificacao) => {
-    if (!avaliacaoId) { return alert("Nenhuma avaliação ativa. Clique em 'Avaliar' em um dos projetos para começar."); }
+    if (!avaliacaoId) return alert("Inicie uma avaliação para alterar os critérios.");
+    if (!data || !data.criterios) return alert("Dados da checklist não carregados.");
+    if (!['SIM', 'NAO', 'N/A'].includes(newClassificacao)) return alert("Classificação inválida.");
+    const nao_conformidades_seguro = data.nao_conformidades ?? [];
     const oldData = data;
     const newData = {
       ...data,
@@ -139,12 +142,22 @@ export default function ChecklistDetailPage() {
       });
       if (!res.ok) {
         setData(oldData);
-        alert("Erro ao atualizar critério");
+        return alert("Erro ao atualizar critério");
+      }
+      if (newClassificacao === 'NAO') {
+        const existingNc = nao_conformidades_seguro.find(nc => nc.id_criterio === criterioId);
+        if (existingNc) {
+          setSelectedNaoConformidade(existingNc);
+          setShowManageNaoConformidadeModal(true);
+        } else {
+          setSelectedCriterioId(criterioId);
+          setShowNaoConformidadeModal(true);
+        }
       }
     } catch (error) {
       setData(oldData);
       console.error("Erro ao atualizar critério:", error);
-      alert("Erro ao atualizar critério");
+      alert("Erro de conexão! verifique se o servidor está rodando!");
     }
   };
 
@@ -307,18 +320,16 @@ export default function ChecklistDetailPage() {
                             />
                             <label htmlFor={`sim-${c.id_criterio}`}>SIM</label>
                           </td>
-                          <td className="action-cell">
-                            <button
-                              className="add-nc-btn"
-                              onClick={() => {
-                                if (!avaliacaoId) { return alert("Nenhuma avaliação ativa. Clique em 'Avaliar' em um dos projetos para começar."); }
-                                setSelectedCriterioId(c.id_criterio);
-                                setShowNaoConformidadeModal(true);
-                              }}
+                          <td className="radio-cell">
+                            <input
+                              id={`nao-${c.id_criterio}`}
+                              type="radio"
+                              name={`criterio-${c.id_criterio}`}
+                              checked={c.classificacao_resposta === 'NAO'}
+                              onChange={() => handleUpdateCriterio(c.id_criterio, 'NAO')}
                               disabled={isNcButtonDisabled}
-                            >
-                              NÃO
-                            </button>
+                            />
+                            <label htmlFor={`nao-${c.id_criterio}`}>NÃO</label>
                           </td>
                           <td className="radio-cell">
                             <input

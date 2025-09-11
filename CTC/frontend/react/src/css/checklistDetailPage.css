@@ -73,6 +73,8 @@
 
 .info-section p {
   font-size: 1.1rem;
+  max-width: 1000px;
+  overflow-wrap:break-word;
   line-height: 1.6;
 }
 
@@ -91,7 +93,6 @@
 .criterios-table td {
   padding: 1rem;
   border: 1px solid var(--border-color);
-  text-align: left;
   vertical-align: middle;
 }
 
@@ -139,12 +140,19 @@
   margin-bottom: 2rem;
 }
 
-.projeto-action {
+.projeto-actions {
+  display: flex;
+  overflow-wrap: anywhere;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  font-size: 0.7rem;
   gap: 1rem;
 }
 
 .projeto-card {
   background: var(--card-bg);
+  min-width: 300px;
+  max-width: fit-content;
   padding: 1.5rem;
   border-radius: 8px;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -230,6 +238,7 @@ textarea {
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .text-center {
@@ -240,29 +249,29 @@ textarea {
 .primary-btn,
 .danger-btn,
 .secondary-btn {
-  padding: 0.8rem 1.5rem;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px #00000033;
-  transform: translateY(0);
+  padding: 0.8rem 1.5rem ;
+  border-radius: 8px ;
+  border: none ;
+  cursor: pointer ;
+  font-weight: bold ;
+  transition: all 0.3s ease ;
+  box-shadow: 0 4px 6px #00000033 ;
+  transform: translateY(0) ;
 }
 
 .primary-btn {
-  background: linear-gradient(135deg, var(--accent-color), #8a54ff);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--accent-color), #8a54ff) !important;
+  color: #ffffff !important;
 }
 
 .danger-btn {
-  background: linear-gradient(135deg, var(--danger-color), #d9534f);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--danger-color), #d9534f) !important;
+  color: #ffffff !important;
 }
 
 .secondary-btn {
-  background: linear-gradient(135deg, #555, #333);
-  color: #ffffff;
+  background: linear-gradient(135deg, #555, #333) !important;
+  color: #ffffff !important;
 }
 
 .primary-btn:hover,

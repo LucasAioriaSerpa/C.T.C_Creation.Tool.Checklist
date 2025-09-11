@@ -229,8 +229,7 @@ def get_checklist(checklist_id):
                 sim_count = counts_result[0]['sim_count'] if counts_result and counts_result[0]['sim_count'] is not None else 0
                 nao_aplicavel_count = counts_result[0]['nao_aplicavel_count'] if counts_result and counts_result[0]['nao_aplicavel_count'] is not None else 0
                 total_criterios_com_resposta = sim_count + (len(criterios) - nao_aplicavel_count)
-                if total_criterios_com_resposta > 0:
-                    aderencia = (sim_count) / total_criterios_com_resposta
+                if total_criterios_com_resposta > 0: aderencia = (sim_count) / total_criterios_com_resposta
         respostas_map = {}
         if id_avaliacao_ativa:
             query_respostas = "SELECT id_criterio, classificacao FROM resposta WHERE id_avaliacao = ?"
@@ -259,26 +258,20 @@ def get_checklist(checklist_id):
 def delete_checklist(checklist_id):
     app.logger.info(f"DELETE /API/checklist/{checklist_id}")
     db = MGDB()
-
     criterios = db.read("criterio", {"id_checklist": checklist_id})
     criterio_ids = [c["id_criterio"] for c in criterios] if criterios else []
-
     if criterio_ids:
         for cid in criterio_ids:
             db.delete("nao_conformidade", {"id_criterio": cid})
-
     avaliacoes = db.read("avaliacao", {"id_checklist": checklist_id})
     avaliacao_ids = [a["id_avaliacao"] for a in avaliacoes] if avaliacoes else []
     if avaliacao_ids:
-        for aid in avaliacao_ids:
-            db.delete("nao_conformidade", {"id_avaliacao": aid})
+        for aid in avaliacao_ids: db.delete("nao_conformidade", {"id_avaliacao": aid})
         db.delete("avaliacao", {"id_checklist": checklist_id})
-
-    if criterio_ids:
-        db.delete("criterio", {"id_checklist": checklist_id})
-
+    if criterio_ids: db.delete("criterio", {"id_checklist": checklist_id})
+    respostas = db.read("resposta", {"id_avaliacao": {"$in": avaliacao_ids}}) if avaliacao_ids else []
+    if respostas: db.delete("resposta", {"id_avaliacao": {"$in": avaliacao_ids}})
     db.delete("checklist", {"id_checklist": checklist_id})
-
     return jsonify({"message": "Checklist e dados relacionados removidos com sucesso"}), 200
 
 # Critérios
@@ -303,22 +296,23 @@ def create_criterio():
 @app.route('/API/criterio/<int:criterio_id>', methods=['PUT'])
 def update_criterio(criterio_id):
     app.logger.info(f"PUT /API/criterio/{criterio_id}")
-    if not request.is_json:
-        return jsonify({"message": "Content-Type deve ser application/json"}), 400
+    if not request.is_json: return jsonify({
+            "message": "Content-Type deve ser application/json"
+        }), 400
     data = request.get_json()
     classificacao = data.get('classificacao')
-
-    if classificacao not in ['SIM', 'NAO', 'N/A']:
-        return jsonify({"message": "Classificação inválida. Use SIM, NAO ou N/A"}), 400
-
+    if classificacao not in ['SIM', 'NAO', 'N/A']: return jsonify({
+            "message": "Classificação inválida. Use SIM, NAO ou N/A"
+        }), 400
     db = MGDB()
     criterio = db.read("criterio", {"id_criterio": criterio_id})
-    if not criterio:
-        return jsonify({"message": "Critério não encontrado"}), 404
-
+    if not criterio: return jsonify({
+            "message": "Critério não encontrado"
+        }), 404
     db.update("criterio", {"classificacao": classificacao}, {"id_criterio": criterio_id})
-
-    return jsonify({"message": "Critério atualizado com sucesso"}), 200
+    return jsonify({
+        "message": "Critério atualizado com sucesso"
+    }), 200
 
 # Projeto
 @app.route('/API/projeto', methods=['POST'])
@@ -378,17 +372,17 @@ def update_projeto(projeto_id):
 @app.route('/API/sendEmail', methods=['POST'])
 def send_email():
     app.logger.info("POST /API/sendEmail")
-    if not request.is_json:
-        return jsonify({"message": "Content-Type deve ser application/json"}), 400
+    if not request.is_json: return jsonify({
+        "message": "Content-Type deve ser application/json"
+    }), 400
     data = request.get_json()
     autor = data.get('autor', app.config['MAIL_DEFAULT_SENDER'])
     recipiente = data.get('recipiente')
     assunto = data.get('assunto', 'Sem Assunto')
     corpo = data.get('message', '')
-
-    if not recipiente:
-        return jsonify({"message": "Erro: Campo de recipiente faltando"}), 400
-
+    if not recipiente: return jsonify({
+        "message": "Erro: Campo de recipiente faltando"
+    }), 400
     try:
         msg = Message(assunto,
                       sender=autor,
@@ -396,10 +390,14 @@ def send_email():
                       body=corpo)
         mail.send(msg)
         app.logger.info(f"E-mail enviado para {recipiente}")
-        return jsonify({"message": "E-mail enviado com sucesso"}), 200
+        return jsonify({
+            "message": "E-mail enviado com sucesso"
+        }), 200
     except Exception as e:
         app.logger.error(f"Erro ao enviar e-mail: {e}")
-        return jsonify({"message": "Erro ao enviar e-mail"}), 500
+        return jsonify({
+            "message": "Erro ao enviar e-mail"
+        }), 500
 
 @app.route('/API/avaliacao', methods=['POST'])
 def create_avaliacao():
@@ -472,14 +470,16 @@ def create_nao_conformidade():
 @app.route('/API/naoconformidade/<int:nc_id>', methods=['PUT'])
 def update_nao_conformidade(nc_id):
     app.logger.info(f"PUT /API/naoconformidade/{nc_id}")
-    if not request.is_json:
-        return jsonify({"message": "Content-Type deve ser application/json"}), 400
+    if not request.is_json: return jsonify({
+        "message": "Content-Type deve ser application/json"
+    }), 400
     data = request.get_json()
     db = MGDB()
     try:
         existing_nc = db.read("nao_conformidade", {"id_nao_conformidade": nc_id})
-        if not existing_nc:
-            return jsonify({"message": "Não conformidade não encontrada"}), 404
+        if not existing_nc: return jsonify({
+            "message": "Não conformidade não encontrada"
+        }), 404
         update_fields = {}
         if 'descricao' in data:
             update_fields['descricao'] = data['descricao']
@@ -487,14 +487,19 @@ def update_nao_conformidade(nc_id):
             update_fields['prazo'] = data['prazo']
         if 'status' in data:
             update_fields['status'] = data['status']
-        if not update_fields:
-            return jsonify({"message": "Nenhum campo para atualizar fornecido"}), 400
+        if not update_fields: return jsonify({
+            "message": "Nenhum campo para atualizar fornecido"
+        }), 400
         update_fields['ultima_atualizacao'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         db.update("nao_conformidade", {"id_nao_conformidade": nc_id}, {"$set": update_fields})
-        return jsonify({"message": "Não conformidade atualizada com sucesso!"}), 200
+        return jsonify({
+            "message": "Não conformidade atualizada com sucesso!"
+        }), 200
     except Exception as e:
         app.logger.error(f"  > Erro ao atualizar não conformidade: {e}")
-        return jsonify({"message": "Erro ao atualizar não conformidade"}), 500
+        return jsonify({
+            "message": "Erro ao atualizar não conformidade"
+        }), 500
 
 @app.route('/API/resposta', methods=['PUT'])
 def update_resposta():

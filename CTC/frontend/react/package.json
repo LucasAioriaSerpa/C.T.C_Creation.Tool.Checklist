@@ -13,6 +13,8 @@
     "api": "cross-env-shell \"npm run api:win || npm run api:linux\""
   },
   "dependencies": {
+    "cross-env-shell": "^7.0.3",
+    "cross-spawn": "^7.0.6",
     "node": "^20.19.5",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
