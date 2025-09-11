@@ -5,6 +5,7 @@ import { fetchData } from "../utils/fetchData.jsx";
 import { BackBtn } from "../components/backBtn.jsx";
 import CreateNaoConformidadeModal from "../components/CreateNaoConformidadeModal.jsx";
 import ManageNaoConformidadeModal from "../components/ManageNaoConformidadeModal.jsx";
+import SendEmailModal from "../components/SendEmailModal.jsx";
 import "../css/checklistDetailPage.css";
 
 export default function ChecklistDetailPage() {
@@ -12,6 +13,7 @@ export default function ChecklistDetailPage() {
   const navigate = useNavigate();
   const VITE_API_URL = 'http://localhost:5000';
   const API_URL = VITE_API_URL;
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -22,6 +24,8 @@ export default function ChecklistDetailPage() {
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [showManageNaoConformidadeModal, setShowManageNaoConformidadeModal] = useState(false);
   const [selectedNaoConformidade, setSelectedNaoConformidade] = useState(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+
   // form criterio
   const [criterioDescricao, setCriterioDescricao] = useState("");
   // form projeto
@@ -118,13 +122,17 @@ export default function ChecklistDetailPage() {
         const existingNc = nao_conformidades_seguro.find(nc => nc.id_criterio === criterioId);
         if (existingNc) {
           setSelectedNaoConformidade(existingNc);
-          setShowManageNaoConformidadeModal(true);
         } else {
-          setSelectedCriterioId(criterioId);
-          setShowNaoConformidadeModal(true);
+          const criterio = data.criterios.find(c => c.id_criterio === criterioId);
+          setSelectedNaoConformidade({
+            id_criterio: criterioId,
+            descricao: criterio ? criterio.descricao : "Critério não encontrado",
+            prazo: null,
+            status: "Pendente"
+          });
         }
+        setShowEmailModal(true);
       }
-      fetchChecklistData();
     } catch (error) {
       setData(oldData);
       console.error("Erro ao atualizar critério:", error);
@@ -364,6 +372,15 @@ export default function ChecklistDetailPage() {
         <ManageNaoConformidadeModal
           ncData={selectedNaoConformidade}
           onClose={handleCloseManageModal}
+        />
+      )}
+      {showEmailModal && (
+        <SendEmailModal
+          ncData={selectedNaoConformidade}
+          onClose={() => setShowEmailModal(false)}
+          onSend={() => {
+            fetchChecklistData();
+          }}
         />
       )}
     </>
