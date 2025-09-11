@@ -12,19 +12,27 @@ export default function ChecklistDetailPage() {
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   // form criterio
   const [criterioDescricao, setCriterioDescricao] = useState("");
-  const [criterioClassificacao, setCriterioClassificacao] = useState("");
 
   // form projeto
-  const [projetoNome, setProjetoNome] = useState("");
-  const [projetoDescricao, setProjetoDescricao] = useState("");
-  const [responsavelNome, setResponsavelNome] = useState("");
-  const [responsavelEmail, setResponsavelEmail] = useState("");
-  const [gestorEmail, setGestorEmail] = useState("");
+  const [projetoFormData, setProjetoFormData] = useState({
+    nome: "",
+    descricao: "",
+    responsavel_nome: "",
+    responsavel_email: "",
+    gestor_email: ""
+  });
 
-  useEffect(() => {
+  const handleProjetoFormChange = (e) => {
+    const { name, value } = e.target;
+    setProjetoFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const fetchData = () => {
     fetch(`${API_URL}/API/checklist/${id}`)
       .then(r => r.json())
       .then(resp => {
@@ -35,6 +43,10 @@ export default function ChecklistDetailPage() {
         console.error(err);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchData();
   }, [API_URL, id]);
 
   const handleDelete = async () => {
@@ -56,44 +68,85 @@ export default function ChecklistDetailPage() {
       headers: {"Content-Type":"application/json"},
       body: JSON.stringify({
         descricao: criterioDescricao,
-        classificacao: criterioClassificacao,
+        classificacao: "N/A", // Default value
         id_checklist: Number(id)
       })
     });
     if (res.status === 201) {
       alert("Critério criado");
-      const updated = await (await fetch(`${API_URL}/API/checklist/${id}`)).json();
-      setData(updated);
+      fetchData(); // Refresh data
       setCriterioDescricao("");
-      setCriterioClassificacao("");
     } else {
       alert("Erro ao criar critério");
     }
   };
 
+  const handleUpdateCriterio = async (criterioId, newClassificacao) => {
+    const res = await fetch(`${API_URL}/API/criterio/${criterioId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ classificacao: newClassificacao }),
+    });
+
+    if (res.ok) {
+      // alert("Critério atualizado");
+      fetchData(); // Refresh data to show the change
+    } else {
+      alert("Erro ao atualizar critério");
+    }
+  };
+
   const handleAddProjeto = async (e) => {
     e.preventDefault();
-    if (!projetoNome) return alert("Informe o nome do projeto");
+    if (!projetoFormData.nome) return alert("Informe o nome do projeto");
     const res = await fetch(`${API_URL}/API/projeto`, {
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({
-        nome: projetoNome,
-        descricao: projetoDescricao,
-        responsavel_nome: responsavelNome,
-        responsavel_email: responsavelEmail,
-        gestor_email: gestorEmail
-      })
+      body: JSON.stringify({ ...projetoFormData, id_checklist: Number(id) })
     });
     if (res.status === 201) {
-      alert("Projeto criado");
-      const updated = await (await fetch(`${API_URL}/API/checklist/${id}`)).json();
-      setData(updated);
-      setProjetoNome(""); setProjetoDescricao(""); setResponsavelNome(""); setResponsavelEmail(""); setGestorEmail("");
+      alert("Projeto criado com sucesso!");
+      fetchData(); // Refresh
+      setProjetoFormData({ nome: "", descricao: "", responsavel_nome: "", responsavel_email: "", gestor_email: "" });
     } else {
       alert("Erro ao criar projeto");
     }
   };
+
+  const handleUpdateProjeto = async (e) => {
+    e.preventDefault();
+    const projetoId = data.projetos[0]?.id_projeto;
+    if (!projetoId) return alert("ID do projeto não encontrado.");
+
+    const res = await fetch(`${API_URL}/API/projeto/${projetoId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(projetoFormData),
+    });
+
+    if (res.ok) {
+      alert("Projeto atualizado com sucesso!");
+      fetchData();
+      setIsEditing(false);
+    } else {
+      alert("Erro ao atualizar projeto.");
+    }
+  };
+
+  const handleEditClick = () => {
+    const projeto = data.projetos[0];
+    if (projeto) {
+      setProjetoFormData({
+        nome: projeto.nome,
+        descricao: projeto.descricao,
+        responsavel_nome: projeto.responsavel_nome,
+        responsavel_email: projeto.responsavel_email,
+        gestor_email: projeto.gestor_email,
+      });
+      setIsEditing(true);
+    }
+  };
+
 
   if (loading) return (<><Header /><div className="container"><p>Carregando...</p></div></>);
   if (!data) return (<><Header /><div className="container"><p>Erro ao carregar dados.</p></div></>);
@@ -102,69 +155,128 @@ export default function ChecklistDetailPage() {
   const criterios = data.criterios || [];
   const projetos = data.projetos || [];
 
+  const renderProjetoForm = (submitHandler, isUpdate = false) => (
+    <div className="add-projeto-form">
+      <h4>{isUpdate ? "Editar projeto" : "Adicionar novo projeto"}</h4>
+      <form className="form-block" onSubmit={submitHandler}>
+        <input name="nome" placeholder="Nome do projeto" value={projetoFormData.nome} onChange={handleProjetoFormChange} required />
+        <textarea name="descricao" placeholder="Descrição" value={projetoFormData.descricao} onChange={handleProjetoFormChange} />
+        <div className="form-row">
+          <input name="responsavel_nome" placeholder="Responsável nome" value={projetoFormData.responsavel_nome} onChange={handleProjetoFormChange} />
+          <input name="responsavel_email" type="email" placeholder="Responsável email" value={projetoFormData.responsavel_email} onChange={handleProjetoFormChange} />
+        </div>
+        <input name="gestor_email" type="email" placeholder="Gestor email" value={projetoFormData.gestor_email} onChange={handleProjetoFormChange} />
+        <div className="form-actions">
+          {isUpdate && <button type="button" className="secondary-btn" onClick={() => setIsEditing(false)}>Cancelar</button>}
+          <button className="primary-btn" type="submit">{isUpdate ? "Atualizar Projeto" : "Criar Projeto"}</button>
+        </div>
+      </form>
+    </div>
+  );
+
   return (
     <>
       <Header />
-      <div className="detail-container">
+      <main className="detail-container">
         <div className="detail-header">
           <h1>{checklist.nome}</h1>
-          <BackBtn to="/dashboardChecklist" />
-          <div>
+          <div className="header-actions">
+            <BackBtn to="/dashboardChecklist" />
             <button className="danger-btn" onClick={handleDelete}>Excluir Checklist</button>
           </div>
         </div>
 
-        <section className="detail-section">
-          <h3>Informações da Checklist</h3>
-          <p><strong>Descrição:</strong> {checklist.descricao}</p>
-          <p><strong>Criador (id):</strong> {checklist.criado_por}</p>
-          <p><strong>Data criação:</strong> {checklist.criado_em}</p>
-        </section>
-
-        <section className="detail-section">
-          <h3>Critérios</h3>
-          {criterios.length === 0 && <p>Nenhum critério cadastrado.</p>}
-          <ul className="criterios-list">
-            {criterios.map(c => (
-              <li key={c.id_criterio}>
-                <strong>{c.classificacao || "—"}</strong> — {c.descricao}
-              </li>
-            ))}
-          </ul>
-
-          <form className="form-inline" onSubmit={handleAddCriterio}>
-            <input placeholder="Descrição do critério" value={criterioDescricao} onChange={(e)=>setCriterioDescricao(e.target.value)} />
-            <input placeholder="Classificação" value={criterioClassificacao} onChange={(e)=>setCriterioClassificacao(e.target.value)} />
-            <button className="primary-btn" type="submit">Adicionar Critério</button>
-          </form>
-        </section>
-
-        <section className="detail-section">
-          <h3>Projetos (Tabela projeto)</h3>
-          {projetos.length === 0 && <p>Nenhum projeto cadastrado.</p>}
-          <div className="projetos-grid">
-            {projetos.map(p => (
-              <div className="projeto-card" key={p.id_projeto}>
-                <h4>{p.nome}</h4>
-                <p>{p.descricao}</p>
-                <p><small>{p.responsavel_nome} • {p.responsavel_email}</small></p>
-              </div>
-            ))}
-          </div>
-
-          <h4>Adicionar projeto</h4>
-          <form className="form-block" onSubmit={handleAddProjeto}>
-            <input placeholder="Nome do projeto" value={projetoNome} onChange={(e)=>setProjetoNome(e.target.value)} required />
-            <textarea placeholder="Descrição" value={projetoDescricao} onChange={(e)=>setProjetoDescricao(e.target.value)} />
-            <input placeholder="Responsável nome" value={responsavelNome} onChange={(e)=>setResponsavelNome(e.target.value)} />
-            <input placeholder="Responsável email" value={responsavelEmail} onChange={(e)=>setResponsavelEmail(e.target.value)} />
-            <input placeholder="Gestor email" value={gestorEmail} onChange={(e)=>setGestorEmail(e.target.value)} />
-            <div style={{display:'flex', gap:10, marginTop:8}}>
-              <button className="primary-btn" type="submit">Criar Projeto</button>
+        <div className="detail-content">
+          {/* Seção de Informações da Checklist */}
+          <section className="detail-section info-section">
+            <div className="info-header">
+              <h3>Informações da Checklist</h3>
             </div>
-          </form>
-        </section>
-      </div>
+            <p><strong>Descrição:</strong> {checklist.descricao}</p>
+            <p><strong>Criador (id):</strong> {checklist.criado_por}</p>
+            <p><strong>Data criação:</strong> {new Date(checklist.criado_em).toLocaleDateString()}</p>
+          </section>
+
+          {/* Seção de Critérios */}
+          <section className="detail-section criterios-section">
+            <h3>Critérios</h3>
+            {criterios.length === 0 ? <p>Nenhum critério cadastrado.</p> : (
+              <div className="table-wrapper">
+                <table className="criterios-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Descrição</th>
+                      <th className="radio-option">SIM</th>
+                      <th className="radio-option">NÃO</th>
+                      <th className="radio-option">N/A</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {criterios.map(c => (
+                      <tr key={c.id_criterio}>
+                        <td>{c.id_criterio}</td>
+                        <td>{c.descricao}</td>
+                        <td className="radio-cell">
+                          <input id={`sim-${c.id_criterio}`} type="radio" name={`criterio-${c.id_criterio}`} checked={c.classificacao === 'SIM'} onChange={() => handleUpdateCriterio(c.id_criterio, 'SIM')} />
+                          <label htmlFor={`sim-${c.id_criterio}`}>SIM</label>
+                        </td>
+                        <td className="radio-cell">
+                          <input id={`nao-${c.id_criterio}`} type="radio" name={`criterio-${c.id_criterio}`} checked={c.classificacao === 'NAO'} onChange={() => handleUpdateCriterio(c.id_criterio, 'NAO')} />
+                          <label htmlFor={`nao-${c.id_criterio}`}>NÃO</label>
+                        </td>
+                        <td className="radio-cell">
+                          <input id={`na-${c.id_criterio}`} type="radio" name={`criterio-${c.id_criterio}`} checked={c.classificacao === 'N/A'} onChange={() => handleUpdateCriterio(c.id_criterio, 'N/A')} />
+                          <label htmlFor={`na-${c.id_criterio}`}>N/A</label>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <form className="form-inline" onSubmit={handleAddCriterio}>
+              <input placeholder="Descrição do novo critério" value={criterioDescricao} onChange={(e) => setCriterioDescricao(e.target.value)} />
+              <button className="primary-btn" type="submit">Adicionar Critério</button>
+            </form>
+          </section>
+
+          {/* Seção de Projetos */}
+          <section className="detail-section projetos-section">
+            <div className="info-header">
+              <h3>Projeto</h3>
+              {projetos.length > 0 && !isEditing && (
+                <button className="primary-btn" onClick={handleEditClick}>Editar Projeto</button>
+              )}
+            </div>
+            {projetos.length > 0 ? (
+              isEditing ? (
+                renderProjetoForm(handleUpdateProjeto, true)
+              ) : (
+                <div className="projetos-grid">
+                  {projetos.map(p => (
+                    <div className="projeto-card" key={p.id_projeto}>
+                      <h4>{p.nome}</h4>
+                      <p>{p.descricao}</p>
+                      <p className="responsavel-info"><small>{p.responsavel_nome} • {p.responsavel_email}</small></p>
+                      <p className="responsavel-info"><small>Gestor: {p.gestor_email}</small></p>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              showCreateForm ? (
+                renderProjetoForm(handleAddProjeto, false)
+              ) : (
+                <div className="text-center">
+                  <p>Nenhum projeto associado a esta checklist.</p>
+                  <button className="primary-btn" onClick={() => setShowCreateForm(true)}>Criar Novo Projeto</button>
+                </div>
+              )
+            )}
+          </section>
+        </div>
+      </main>
     </>
   );
 }

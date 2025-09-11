@@ -263,6 +263,26 @@ def create_criterio():
     })
     return jsonify({"message": "Critério criado"}), 201
 
+@app.route('/API/criterio/<int:criterio_id>', methods=['PUT'])
+def update_criterio(criterio_id):
+    app.logger.info(f"PUT /API/criterio/{criterio_id}")
+    if not request.is_json:
+        return jsonify({"message": "Content-Type deve ser application/json"}), 400
+    data = request.get_json()
+    classificacao = data.get('classificacao')
+
+    if classificacao not in ['SIM', 'NAO', 'N/A']:
+        return jsonify({"message": "Classificação inválida. Use SIM, NAO ou N/A"}), 400
+
+    db = MGDB()
+    criterio = db.read("criterio", {"id_criterio": criterio_id})
+    if not criterio:
+        return jsonify({"message": "Critério não encontrado"}), 404
+
+    db.update("criterio", {"classificacao": classificacao}, {"id_criterio": criterio_id})
+
+    return jsonify({"message": "Critério atualizado com sucesso"}), 200
+
 # Projeto
 @app.route('/API/projeto', methods=['POST'])
 def create_projeto():

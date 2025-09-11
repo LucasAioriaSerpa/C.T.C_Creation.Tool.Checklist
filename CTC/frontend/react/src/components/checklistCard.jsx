@@ -23,7 +23,10 @@ export default function ChecklistCard({ nome, descricao, dataCriacao, criador, b
         </div>
         </div>
 
-        <button className="checklist-button" onClick={btnAbrir}>Abrir</button>
+        <button className="checklist-button" onClick={btnAbrir}>
+          Abrir
+          <span className="checklist-button-icon"></span>
+        </button>
     </div>
   );
 }

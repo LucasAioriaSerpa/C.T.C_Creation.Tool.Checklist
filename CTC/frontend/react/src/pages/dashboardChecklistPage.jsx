@@ -38,11 +38,9 @@ export default function DashboardChecklistPage() {
     <>
       <Header />
       <div className="dashboard-container">
-        <div style={{display: 'flex', width: '100%', maxWidth: 1200, justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
+        <div className="dashboard-header">
           <h1 className="dashboard-title">Checklists</h1>
-          <div>
-            <button className="primary-btn" onClick={() => setShowModal(true)}>+ Nova Checklist</button>
-          </div>
+          <button className="primary-btn" onClick={() => setShowModal(true)}>+ Nova Checklist</button>
         </div>
 
         {loading ? <p style={{color:'#ddd'}}>Carregando checklists...</p> : null}

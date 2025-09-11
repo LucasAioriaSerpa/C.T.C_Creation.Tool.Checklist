@@ -1,6 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary-color: #3a7bd5;
+  --secondary-color: #3a60d5;
+  --background-dark: #1a1a1a;
+  --background-light: #2d2d2d;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --card-background: #252525;
+  --border-color: #444444;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
 .dashboard-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+  background: linear-gradient(135deg, var(--background-dark) 0%, var(--background-light) 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -8,14 +25,22 @@
   overflow: hidden;
 }
 
+.dashboard-header {
+  display: flex;
+  width: 100%;
+  max-width: 1200px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
 .dashboard-title {
-  color: white;
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 32px;
-  font-weight: bold;
+  color: var(--text-primary);
+  font-size: 36px;
+  font-weight: 700;
   position: relative;
   padding-bottom: 15px;
+  margin: 0;
 }
 
 .dashboard-title::after {
@@ -24,50 +49,69 @@
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 60px;
+  width: 80px;
   height: 4px;
-  background: linear-gradient(90deg, #646cff, #8a54ff);
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
   border-radius: 2px;
 }
 
-.criar-checklist-btn {
-  margin-bottom: 30px;
+.primary-btn {
   padding: 12px 24px;
   border: none;
-  border-radius: 12px;
-  background: linear-gradient(90deg, #646cff, #8a54ff);
-  color: white;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  color: var(--text-primary);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(58, 123, 213, 0.3);
 }
 
-.criar-checklist-btn:hover {
-  background: linear-gradient(90deg, #535bf2, #7a45e0);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(107, 53, 255, 0.3);
+.primary-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(58, 123, 213, 0.4);
 }
 
 .dashboard-cards {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 30px;
-  justify-content: center;
-  align-items: flex-start;
+  width: 100%;
   max-width: 1200px;
+  justify-content: center;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
-@media screen and (max-width: 1024px) {
-  .dashboard-cards {
-    gap: 20px;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @media screen and (max-width: 768px) {
-  .dashboard-cards {
+  .dashboard-container {
+    padding: 30px 15px;
+  }
+
+  .dashboard-header {
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .dashboard-title {
+    font-size: 30px;
+  }
+
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 }
 
@@ -77,10 +121,10 @@
   max-width: 500px;
   margin-bottom: 16px;
   padding: 12px 16px;
-  border-radius: 12px;
-  border: 1px solid #3a3a3a;
-  background: #2a2a2a;
-  color: white;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--background-light);
+  color: var(--text-primary);
   font-size: 14px;
   outline: none;
   transition: all 0.2s ease;
@@ -88,16 +132,11 @@
 
 .dashboard-container input:focus,
 .dashboard-container textarea:focus {
-  border-color: #646cff;
-  box-shadow: 0 0 8px rgba(100, 108, 255, 0.4);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 8px rgba(58, 123, 213, 0.4);
 }
 
 .dashboard-container textarea {
   resize: vertical;
   min-height: 100px;
-}
-
-@media (max-width:1200px) {
-  .dashboard-cards { gap: 20px; }
-  .checklist-card { width: 340px; } 
 }
