@@ -471,9 +471,10 @@ def get_respostas_avaliacao(avaliacao_id):
 @app.route('/API/naoconformidade', methods=['POST'])
 def create_nao_conformidade():
     app.logger.info("POST /API/naoconformidade")
-    if not request.is_json: return jsonify({
-        "message": "Content-Type deve ser application/json"
-    }), 400
+    if not request.is_json:
+        return jsonify({
+            "message": "Content-Type deve ser application/json"
+        }), 400
     data = request.get_json()
     app.logger.info(f"  > Dados recebidos: {data}")
     id_avaliacao = data.get('id_avaliacao')
@@ -482,11 +483,17 @@ def create_nao_conformidade():
     db = MGDB()
     criterio = db.read("criterio", {"id_criterio": id_criterio})
     descricao = criterio[0]['descricao'] if criterio else None
-    if not all([prazo, id_avaliacao, id_criterio]): return jsonify({
-        "message": "Campos obrigatórios: descricao, prazo, id_avaliacao, id_criterio"
-    }), 400
+    if not all([prazo, id_avaliacao, id_criterio]):
+        return jsonify({
+            "message": "Campos obrigatórios: descricao, prazo, id_avaliacao, id_criterio"
+        }), 400
+    nc_existente = db.read("nao_conformidade", {"id_avaliacao": id_avaliacao, "id_criterio": id_criterio})
+    if nc_existente:
+        return jsonify({
+            "message": "Já existe uma não conformidade registrada para este critério nesta avaliação."
+        }), 400
     try:
-        MGDB().create("nao_conformidade", {
+        db.create("nao_conformidade", {
             "descricao": descricao,
             "prazo": prazo,
             "status": "pendente",
@@ -496,7 +503,7 @@ def create_nao_conformidade():
             "id_criterio": id_criterio
         })
         return jsonify({
-            "message": "Não conformidade FOI registrada com sucesso!"
+            "message": "Não conformidade registrada com sucesso!"
         }), 200
     except Exception as e:
         app.logger.error(f"     > Erro ao criar não conformidade: {e}")
@@ -539,9 +546,10 @@ def update_nao_conformidade(nc_id):
 @app.route('/API/resposta', methods=['PUT'])
 def update_resposta():
     app.logger.info("PUT /API/resposta")
-    if not request.is_json: return jsonify({
-        "message": "Content-Type deve ser application/json"
-    }), 400
+    if not request.is_json:
+        return jsonify({
+            "message": "Content-Type deve ser application/json"
+        }), 400
     data = request.get_json()
     id_avaliacao = data.get('id_avaliacao')
     id_criterio = data.get('id_criterio')
@@ -558,6 +566,8 @@ def update_resposta():
         }), 400
     db.update("criterio", {"classificacao": classificacao}, {"id_criterio": id_criterio})
     resposta_existente = db.read("resposta", {"id_avaliacao": id_avaliacao, "id_criterio": id_criterio})
+    if classificacao in ["SIM", "NA"]:
+        db.delete("nao_conformidade", {"id_avaliacao": id_avaliacao, "id_criterio": id_criterio})
     if resposta_existente:
         db.update("resposta", {"classificacao": classificacao}, {"id_avaliacao": id_avaliacao, "id_criterio": id_criterio})
         return jsonify({

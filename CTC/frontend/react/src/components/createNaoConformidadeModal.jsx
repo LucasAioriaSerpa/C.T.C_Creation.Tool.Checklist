@@ -5,36 +5,31 @@ import '../css/createChecklistModal.css';
 export default function CreateNaoConformidadeModal({ idCriterio, idAvaliacao, onClose, onCreated }) {
     const [prazo, setPrazo] = useState("");
     const [loading] = useState(false);
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!idAvaliacao || !idCriterio) {
-            alert("Por favor, preencha todos os campos.");
-            return;
-        }
-        const payload = {
-            id_avaliacao: idAvaliacao,
-            id_criterio: idCriterio,
-            prazo: prazo
-        };
-        console.log("Enviando dados:", payload);
-        try {
-            const res = await fetchData('/API/naoconformidade', {
-                method: 'POST',
-                body: JSON.stringify(payload),
-                headers: { 'Content-Type': 'application/json' },
-            });
-            if (res.ok) {
-                alert("Não conformidade registrada com sucesso!");
-                onCreated();
-            } else {
-                const errorData = await res.json();
-                alert(`Erro ao registrar: ${errorData.message}`);
-            }
-        } catch (error) {
-            console.error("Erro na requisição:", error);
-            alert("Erro na comunicação com o servidor.");
-        }
+    if (!idAvaliacao || !idCriterio) {
+        alert("Por favor, preencha todos os campos.");
+        return;
+    }
+    const payload = {
+        id_avaliacao: idAvaliacao,
+        id_criterio: idCriterio,
+        prazo: prazo
+    };
+    console.log("Enviando dados:", payload);
+    try {
+        await fetchData('/API/naoconformidade', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: { 'Content-Type': 'application/json' },
+        });
+        alert("Não conformidade registrada com sucesso!");
+        onCreated();
+        onClose();
+    } catch (error) {
+        console.error("Erro na requisição:", error);
+        alert("Erro na comunicação com o servidor.");
+    }
     };
     return (
         <div className="modal-overlay" onClick={onClose}>
