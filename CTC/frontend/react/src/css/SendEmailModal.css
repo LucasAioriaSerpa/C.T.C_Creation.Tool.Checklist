@@ -55,7 +55,7 @@
 
 .email-form input,
 .email-form textarea {
-  width: 100%;
+  width: 80%;
   padding: 0.75rem;
   border: 1px solid #555;
   background-color: #333;

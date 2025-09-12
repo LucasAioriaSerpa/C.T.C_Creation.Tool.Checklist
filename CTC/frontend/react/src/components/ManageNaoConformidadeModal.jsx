@@ -43,7 +43,7 @@ export default function ManageNaoConformidadeModal({ ncData, onClose, onOpenEmai
                 <form onSubmit={handleUpdate}>
                     <p>ID da Não Conformidade: <strong>{ncData.id_nao_conformidade}</strong></p>
                     <label>Descrição</label>
-                    <textarea value={descricao} disabled />
+                    <p>{descricao}</p>
                     <label>Prazo de Resolução</label>
                     <input type="date" value={prazo} onChange={(e) => setPrazo(e.target.value)} required />
                     <label>Status</label>

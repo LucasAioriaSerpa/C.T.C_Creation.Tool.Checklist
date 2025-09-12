@@ -535,7 +535,14 @@ def update_nao_conformidade(nc_id):
             "message": "Nenhum campo para atualizar fornecido"
         }), 400
         update_fields['ultima_atualizacao'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        db.update("nao_conformidade", {"id_nao_conformidade": nc_id}, {"$set": update_fields})
+        db.update(
+            "nao_conformidade",
+            {
+                "prazo": update_fields["prazo"],
+                "status": update_fields["status"],
+                "ultima_atualizacao": update_fields["ultima_atualizacao"]
+            },
+            {"id_nao_conformidade": nc_id})
         return jsonify({
             "message": "Não conformidade atualizada com sucesso!"
         }), 200

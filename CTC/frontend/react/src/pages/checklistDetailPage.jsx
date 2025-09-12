@@ -7,6 +7,7 @@ import CreateNaoConformidadeModal from "../components/CreateNaoConformidadeModal
 import ManageNaoConformidadeModal from "../components/ManageNaoConformidadeModal.jsx";
 import SendEmailModal from "../components/SendEmailModal.jsx";
 import "../css/checklistDetailPage.css";
+import authService from "../utils/auth/authService.jsx";
 
 export default function ChecklistDetailPage() {
   const { id } = useParams();
@@ -217,7 +218,8 @@ export default function ChecklistDetailPage() {
               <h3>Informações da Checklist</h3>
             </div>
             <p><strong>Descrição:</strong> {checklist.descricao}</p>
-            <p><strong>Criador (id):</strong> {checklist.criado_por}</p>
+            <p><strong>Criador:</strong> {authService.getUserNome()}</p>
+            <p><strong>Id Criador:</strong> {checklist.criado_por}</p>
             <p><strong>Data criação:</strong> {new Date(checklist.criado_em).toLocaleDateString()}</p>
             {data.ultima_avaliacao && (
               <p>
@@ -308,7 +310,7 @@ export default function ChecklistDetailPage() {
                   <div key={nc.id_nao_conformidade} className="nc-card">
                     <h4>Critério ID: {nc.id_criterio}</h4>
                     <p><strong>Descrição:</strong> {nc.descricao}</p>
-                    <p><strong>Prazo:</strong> {new Date(nc.prazo).toLocaleDateString()}</p>
+                    <p><strong>Prazo:</strong> {new Date(nc.prazo).toLocaleDateString('pt-BR')}</p>
                     <p><strong>Status:</strong> {nc.status}</p>
                     <button
                       className="secondary-btn"
@@ -357,7 +359,7 @@ export default function ChecklistDetailPage() {
         <CreateNaoConformidadeModal
           idCriterio={selectedCriterioId}
           idAvaliacao={avaliacaoId}
-          onClose={() => setShowNaoConformidadeModal(false)}
+          onClose={() => {setShowNaoConformidadeModal(false); fetchChecklistData();}}
           onCreated={(newNc) => {
             setShowNaoConformidadeModal(false);
             setSelectedNaoConformidade(newNc);
@@ -368,7 +370,7 @@ export default function ChecklistDetailPage() {
       {showManageNaoConformidadeModal && (
         <ManageNaoConformidadeModal
           ncData={selectedNaoConformidade}
-          onClose={handleCloseManageModal}
+          onClose={() => { handleCloseManageModal(); fetchChecklistData(); }}
           onOpenEmailModal={(nc) => {
             setShowManageNaoConformidadeModal(false);
             setSelectedNaoConformidade(nc);

@@ -10,13 +10,13 @@ const SendEmailModal = ({ onClose, ncData, onSend }) => {
     if (ncData) {
       const subjectText = `Não Conformidade no Critério ${ncData.id_criterio}`;
       const bodyText = `
-Foi identificada uma não conformidade na avaliação da checklist.
+    Foi identificada uma não conformidade na avaliação da checklist.
 
-Detalhes:
-- Critério ID: ${ncData.id_criterio}
-- Descrição: ${ncData.descricao}
-- Prazo para correção: ${ncData.prazo ? new Date(ncData.prazo).toLocaleDateString() : 'Não definido'}
-- Status: ${ncData.status}
+    Detalhes:
+    - Critério ID: ${ncData.id_criterio}
+    - Descrição: ${ncData.descricao}
+    - Prazo para correção: ${new Date(ncData.prazo).toLocaleDateString('pt-BR')}
+    - Status: ${ncData.status}
       `;
       setSubject(subjectText);
       setBody(bodyText.trim());
