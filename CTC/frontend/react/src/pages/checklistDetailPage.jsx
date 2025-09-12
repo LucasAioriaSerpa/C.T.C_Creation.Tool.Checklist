@@ -92,9 +92,9 @@ export default function ChecklistDetailPage() {
   };
 
   const handleUpdateCriterio = async (criterioId, newClassificacao) => {
-    if (!avaliacaoId) return alert("Inicie uma avaliação para alterar os critérios.");
-    if (!data?.criterios) return alert("Dados da checklist não carregados.");
-    if (!['SIM', 'NAO', 'N/A'].includes(newClassificacao)) return alert("Classificação inválida.");
+    if (!avaliacaoId) { return alert("Inicie uma avaliação para alterar os critérios."); }
+    if (!data?.criterios) { return alert("Dados da checklist não carregados."); }
+    if (!['SIM', 'NAO', 'N/A'].includes(newClassificacao)) { return alert("Classificação inválida."); }
     const nao_conformidades_seguro = data.nao_conformidades ?? [];
     const oldData = data;
     const newData = {
@@ -122,17 +122,13 @@ export default function ChecklistDetailPage() {
         const existingNc = nao_conformidades_seguro.find(nc => nc.id_criterio === criterioId);
         if (existingNc) {
           setSelectedNaoConformidade(existingNc);
+          setShowManageNaoConformidadeModal(true);
         } else {
-          const criterio = data.criterios.find(c => c.id_criterio === criterioId);
-          setSelectedNaoConformidade({
-            id_criterio: criterioId,
-            descricao: criterio ? criterio.descricao : "Critério não encontrado",
-            prazo: null,
-            status: "Pendente"
-          });
+          setSelectedCriterioId(criterioId);
+          setShowNaoConformidadeModal(true);
         }
-        setShowEmailModal(true);
       }
+      fetchChecklistData();
     } catch (error) {
       setData(oldData);
       console.error("Erro ao atualizar critério:", error);
@@ -362,9 +358,10 @@ export default function ChecklistDetailPage() {
           idCriterio={selectedCriterioId}
           idAvaliacao={avaliacaoId}
           onClose={() => setShowNaoConformidadeModal(false)}
-          onCreated={() => {
+          onCreated={(newNc) => {
             setShowNaoConformidadeModal(false);
-            fetchChecklistData();
+            setSelectedNaoConformidade(newNc);
+            setShowEmailModal(true);
           }}
         />
       )}
@@ -372,6 +369,11 @@ export default function ChecklistDetailPage() {
         <ManageNaoConformidadeModal
           ncData={selectedNaoConformidade}
           onClose={handleCloseManageModal}
+          onOpenEmailModal={(nc) => {
+            setShowManageNaoConformidadeModal(false);
+            setSelectedNaoConformidade(nc);
+            setShowEmailModal(true);
+          }}
         />
       )}
       {showEmailModal && (

@@ -224,6 +224,7 @@ def get_checklist(checklist_id):
             return jsonify({"message": "Checklist não encontrada"}), 404
         checklist = checklist_rows[0]
         criterios = db.read("criterio", {"id_checklist": checklist_id})
+        app.logger.info(f"Critérios encontrados: {len(criterios) if criterios else 0}")
         query_projetos = """
             SELECT p.* FROM projeto p
                 JOIN avaliacao a ON p.id_projeto = a.id_projeto
@@ -418,10 +419,11 @@ def send_email():
         "message": "Erro: Campo de recipiente faltando"
     }), 400
     try:
-        msg = Message(assunto,
-                      sender=autor,
-                      recipients=[recipiente],
-                      body=corpo)
+        msg = Message(  assunto,
+                        sender=autor,
+                        recipients=[recipiente],
+                        body=corpo
+                    )
         mail.send(msg)
         app.logger.info(f"E-mail enviado para {recipiente}")
         return jsonify({

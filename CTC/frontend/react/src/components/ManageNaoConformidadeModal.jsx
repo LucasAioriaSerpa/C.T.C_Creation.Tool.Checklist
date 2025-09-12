@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { fetchData } from "../utils/fetchData";
-import '../css/createChecklistModal.css'; // Reutilize o CSS
+import '../css/createChecklistModal.css';
 
-export default function ManageNaoConformidadeModal({ ncData, onClose}) {
+export default function ManageNaoConformidadeModal({ ncData, onClose, onOpenEmailModal}) {
     const [loading, setLoading] = useState(false);
     const [descricao] = useState(ncData.descricao);
     const [prazo, setPrazo] = useState(ncData.prazo);
@@ -34,36 +34,8 @@ export default function ManageNaoConformidadeModal({ ncData, onClose}) {
             setLoading(false);
         }
     };
+    const handleEmail = async () => {onOpenEmailModal(ncData);};
 
-    const handleEmail = async () => {
-        setLoading(true);
-        const gestorEmail = 'email-do-gestor-do-projeto@exemplo.com'; // **Substitua com o email do gestor**
-        const subject = `Não Conformidade no Critério ${ncData.id_criterio}`;
-        const body = `
-            Olá,
-            Uma não conformidade foi identificada na avaliação da checklist.
-            Descrição: ${descricao}
-            Prazo: ${prazo}
-            Status: ${status}
-            Por favor, tome as medidas necessárias.
-            Atenciosamente,
-            Equipe de Auditoria
-        `;
-        try {
-            const res = await fetchData('/API/email/sendEmail', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ to: gestorEmail, subject, body }),
-            });
-            const data = await res.json();
-            alert(data.message);
-        } catch (error) {
-            console.error("Erro ao enviar email:", error);
-            alert("Erro ao enviar email.");
-        } finally {
-            setLoading(false);
-        }
-    };
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-card" onClick={(e) => e.stopPropagation()}>

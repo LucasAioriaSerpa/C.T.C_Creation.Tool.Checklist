@@ -9,6 +9,7 @@ export default function CreateNaoConformidadeModal({ idCriterio, idAvaliacao, on
         e.preventDefault();
     if (!idAvaliacao || !idCriterio) {
         alert("Por favor, preencha todos os campos.");
+        console.log("idAvaliacao ou idCriterio não fornecido:", { idAvaliacao, idCriterio });
         return;
     }
     const payload = {
@@ -18,13 +19,13 @@ export default function CreateNaoConformidadeModal({ idCriterio, idAvaliacao, on
     };
     console.log("Enviando dados:", payload);
     try {
-        await fetchData('/API/naoconformidade', {
+        const createdNc = await fetchData('/API/naoconformidade', {
             method: 'POST',
             body: JSON.stringify(payload),
             headers: { 'Content-Type': 'application/json' },
         });
         alert("Não conformidade registrada com sucesso!");
-        onCreated();
+        onCreated(createdNc);
         onClose();
     } catch (error) {
         console.error("Erro na requisição:", error);

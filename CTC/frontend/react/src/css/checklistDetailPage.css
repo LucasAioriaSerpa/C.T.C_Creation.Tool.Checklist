@@ -162,8 +162,7 @@
 
 .projeto-card {
   background: var(--card-bg);
-  width: 100%;
-  max-width: fit-content;
+  width: 500px;
   padding: 1.5rem;
   border-radius: 8px;
   transition: transform 0.2s, box-shadow 0.2s;
